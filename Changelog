@@ -1,3 +1,14 @@
+2005-03-16  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode.el:
+	(vlog-mode-electric-space): Do not expand width string with
+	`parameter' keyword.
+
+	* vlog-indent.el:
+	(vlog-indent-check-for-newline): Skip back begin...end and
+	fork...join blocks.
+	(vlog-indent-goto-match-if): Doc typo fix; Fix the bug that
+	confuses `end' and `endcase'.
+
 2005-03-11  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-lib.el:
 	(vlog-jump-out-useless-backward): Fix a bug when there are
