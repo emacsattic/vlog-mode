@@ -1,0 +1,71 @@
+2005-01-31  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-indent:
+	(vlog-indent-check-for-newline): Finish (while t ...) loop
+	appropriately.
+
+2005-01-15  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode:
+	(vlog-mode-electric-space): Rewritten, now this command works well
+	with net declarations with defined parameters.
+	(vlog-mode-pragma-face): Use 'font-lock-preprocessor-face if it's
+	defined, or use 'font-lock-constant-face.
+
+	* vlog-signal:
+	(vlog-signal-get-signal-width): Deal with parameters.
+	(vlog-signal-show-width): Support signal width with parameters.
+
+2005-01-14  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-auto:
+	(vlog-auto-get-module-parameters):
+	Renamed to vlog-lib-get-module-parameters and moved to vlog-lib.
+
+	* vlog-lib:
+	(vlog-lib-get-module-parameters): New function.
+	(vlog-lib-get-module-para-val): New function.
+
+2005-01-13  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-lib:
+	(line-number-at-pos): Define it if not defined. (Compatible with
+	earlier Emacs versions.)
+
+	* vlog-auto:
+	(vlog-auto-sense-update-this-block): New function.
+	(vlog-auto-get-always-block-signals): Do not force if/else matching.
+	(vlog-auto-output-parser-err): New function.
+
+	* vlog-mode:
+	(vlog-mode-make-keymap): Bind vlog-auto-sense-update-this-block to
+	C-c C-u.
+
+2005-01-12  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode:
+	(vlog-mode-electric-space): fixed the bug when there are non-space
+	characters after the cursor in the same line.
+
+2005-01-11  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-lib:
+	(vlog-skip-blank-and-useless-backward): when skip directive lines,
+	goto the end of previous line.
+
+2005-01-10  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode-1.2beta2:
+	(vlog-mode-auto-end-block): new option, add end/join for
+	begin/fork automatically.
+	
+	(vlog-skel-smart-header): new command, insert header. Default
+	binding is C-c C-h.
+	(vlog-skel-header-string),
+	(vlog-skel-user-name),
+	(vlog-skel-company-name): new variables.
+	
+	(vlog-mode-electric-comma): new command, double commas insert a "<=".
+	(looking-back): add definition for old Emacs version.
+	(vlog-lib-auto-keyword-re): new variable.
+	
+	(vlog-skip-blank-and-useless-backward): simplified.
+	(vlog-skip-blank-and-useless-forward),
+	(vlog-lib-get-current-file-name),
+	(vlog-lib-get-current-module-name),
+	(vlog-lib-move-to-column): new functions.
+	
+	(vlog-auto.el): new package, provides auto-sense utilities.

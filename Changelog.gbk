@@ -1,0 +1,30 @@
+-*- coding: gbk -*-
+
+vlog-mode  v1.4-beta3  [2005-xx-xx]
+	* 修正了一些小bug。
+
+vlog-mode  v1.4-beta2  [2005-01-17]
+	* 修正了一些和预编译命令有关的缩进bug。
+	* 重写了vlog-mode-electric-space，展开时能正确处理parameter。
+	* 修正了一些于老版本Emacs兼容的问题。
+	* 加入了vlog-auto-sense-update-this-block，默认绑定到C-c C-u上。
+	* 取消了auto-sense时对if/else必须配对的严格限制。
+	* 对auto-sense时parse的错误给出信息。
+	* F1可查看当前parameter的值。修正了parameter值的查找函数。
+	* F1查看信号宽度时考虑定义中使用参数的情况。
+
+vlog-mode  v1.4-beta1  [2005-01-10]
+	* 修正了老版本GNU Emacs的兼容问题。（XEmacs测试仍未进行）
+	* 在begin/fork后回车会自动补全end/join块。
+	* 加入了高度可定制的file header，C-c C-h插入/修改。
+	参考：vlog-skel-header-string, vlog-skel-user-name
+	vlog-skel-company-name。
+	* 输入两个逗号(,,)可以插入一个赋值符号(<=)。
+	* auto sense功能，可以自动补全always块的敏感表。
+	参考：vlog-auto-sense-abandon-old-list, vlog-auto-sense-refill-old-list。
+	在需要自动敏感表补全的always块前加入注释：
+	// auto sense // （注意必须顶行写，格式正确会有高亮提示）
+	然后用C-c C-a可以补全当前buffer所有的敏感表。
+	可以设置只增加信号或者可增减信号（vlog-auto-sense-abandon-old-list），
+	在只增加信号的模式下可以选择是否重排原敏感表
+	（vlog-auto-sense-refill-old-list）。

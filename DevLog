@@ -1,0 +1,63 @@
+                        -*- mode: outline -*-
+
+* About vlog-mode ------------------------------------------------------------
+
+The goal of vlog-mode is to build a FULLY CUSTOMIZABLE verilog IDE. Everybody
+is welcom to make suggestions, submit feature requests or become part of the
+vlog-mode team. No single person, group or organization controls the vlog-mode
+codes.
+
+* TODOs ----------------------------------------------------------------------
+** AUTO features, especially auto sensitive list WITHOUT /*AUTO_SENSE*/
+   directive comments.
+
+** Module ports detection and auto module instantiation; Hierarchical module
+   ports listing and hinting, something like "intellisense" or better.
+
+** A "tuner" for indentation and alignment settings. Ideas are needed.
+
+** Signal width detection using tooltip around the cursor, not the mouse.
+
+** Code folding with hs-minor-mode.
+
+** XEmacs compatability tests.
+
+* Feature list ---------------------------------------------------------------
+** Colorful syntax highlight, easy-to-use keywords customization.
+*** module instantiation fontification.
+*** begin/fork block identifiers fontification.
+*** special comments fontification. For example "//TODO" or "// psl",etc.
+    check variable vlog-mode-keywordset-docs before you add your own doc
+    keywords.
+
+** Fully configurable code indentation and alignment. Read README for more.
+
+** Convenient typing assistants.
+*** do indentation automatically after you type begin, fork, end, join,
+    case[xz] and endcase. Because these words may vary the indentation of
+    current line.
+*** automatically insert matching "end"("join") for "begin"("fork") when you
+    start a new line. Controlled by `vlog-mode-auto-end-block'.
+*** auto-indent every new line by default.
+*** automatic expansion in signal width declaration. That is, after you type a
+    "reg 4", and then a space, Emacs will expand it into "reg [3:1]"
+    automatically. This feature dose NOT support macros.
+*** "Hungry" backward deletion. Bind to [C-backspace] by default.
+
+** Signal width detection: show signal's width in echo area. Move the cursor
+   onto a signal, and then press F1.
+
+** Smart skeletons. e.g. auto clock signal insertion for edge-sensitive always
+   blocks.
+*** Type C-c C-c C-a to insert an edge sensitive always block.  Emacs will
+    detect previous codes for clock and reset signals and insert them
+    automatically.
+*** Type C-c C-c a to insert a combinative sensitive always block.
+*** Type C-c C-h to insert a header for current file.
+
+** Smart signals. e.g. detect main signal in current always block.
+*** Type M-s inside an always block to insert the "target signal".  Target
+    signal is the signal for which this block is INTENDED.  This feature is
+    based on the suppose that most signals are described seperately in
+    seperate always blocks and, in most always blocks, there's only one
+    left signal.

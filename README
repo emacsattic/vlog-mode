@@ -1,0 +1,137 @@
+                  -*- mode: outline -*-
+* Syntax highlight
+** check vlog-mode-keywordset-docs and vlog-mode-keywordset-pragmas.
+vlog-mode will highlight keywords inside comments like "// sysnopsys ..." or
+"// todo: ...". you can add your own keywords.
+** vlog-mode-keywords-use-generic-systask (default value is nil):
+If vlog-mode-keywords-use-generic-systask is t, than anything like "$systask"
+will be highlighted as system task; If it's nil, than only standard system
+tasks will be highlighted. Standard system tasks are defined in variable
+vlog-mode-keywordset-systasks.
+
+* Indentation settings
+You can set your own indentation style like this:
+
+(setq vlog-indent-level-beh                2
+      vlog-indent-level-block              0
+      vlog-indent-level-block-beh          0
+      vlog-indent-level-block-inside       3
+      vlog-indent-level-case-inside        4
+      vlog-indent-level-case-branch-inside 2
+      vlog-indent-level-cond               3
+      vlog-indent-level-default            4
+      vlog-indent-level-port-list          4
+      vlog-indent-align-port-list-to-paren nil
+      vlog-indent-align-else-to-if         nil)
+
+Below is elaborations on these parameters:
+** vlog-indent-level-beh and vlog-indent-level-block-beh:
+always @(this or that)
+  if (this) ------------------> vlog-indent-level-beh (2)
+  ......
+  ......
+always @(this or that)
+begin ------------------------> vlog-indent-level-block-beh (0)
+  if (this)
+  ......
+** vlog-indent-level-cond:
+if (sig1 && ~sig2)
+   out_sig <= in_sig; --------> vlog-indent-level-cond (3)
+** vlog-indent-level-block and vlog-indent-level-block-inside:
+if (this)
+  begin ----------------------> vlog-indent-level-block (2)
+      signal = value; --------> vlog-indent-level-block-inside (4)
+  end
+** vlog-indent-level-case-inside and vlog-indent-level-case-branch-inside:
+case (sig)
+    VALUE1: ------------------> vlog-indent-level-case-inside (4)
+      out = ~in; -------------> vlog-indent-level-case-branch-inside (2)
+    ......
+** vlog-indent-level-port-list and vlog-indent-align-port-list-to-paren:
+If vlog-indent-align-port-list-to-paren is nil, than the indentation will be:
+module my_mod (
+    in_port, ----+------------> vlog-indent-level-port-list (4)
+    in_port2,----|
+    out_port,----|
+    out_port2----|
+    );
+If vlog-indent-align-port-list-to-paren is t, than the indentation will be:
+module my_mod (
+               in_port,
+               in_port2,
+               out_port,
+               out_port2
+               );
+** vlog-indent-level-default:
+I don't exactly know when will this variable be used :) Its default value is 4.
+** vlog-indent-align-else-to-if:
+If vlog-indent-align-else-to-if is nil, then the indentation will be:
+if (sig1)
+   out = in[1];
+else if (sig2)
+   out = in[2];
+else if (sig3)
+   out = in[3];
+else if (sig4)
+   out = in[4];
+......
+If vlog-indent-align-else-to-if is t, then the indentation will be:
+if (sig1)
+   out = in[1];
+else if (sig2)
+   out = in[2];
+     else if (sig3)
+        out = in[3];
+          else if (sig4)
+             out = in[4];
+......
+
+* Align settings
+** vlog-align-do-align-with-indent (default value is t):
+If vlog-align-do-align-with-indent is t, than emacs will do alignment along
+with indentation; If it is nil, you have to do it with C-c SPC.
+** vlog-align-normal-comment-column (default value is 48):
+The column number of comments in module port list.
+module my_mod (
+    in_port,                  // my comments...
+    in_port2,                 // my comments...
+    out_port,                 // my comments...
+                              48
+......
+** vlog-align-mod-inst-stop-list (default value is '(24 44)):
+Stop list of module instantiation line alignment.
+For example, if you want to align your codes like this:
+m_ff_ce #(1,1'b0) u_ff_my (
+    .i_clk      (my_clk),       // comments...
+                16              32
+    .i_reset_b  (my_reste_b),   // comments...
+Then you can set me to '(16 32).
+** vlog-align-declaration-stop-list (default value is '(10 18 30 32 48)):
+Stop list of declaration line alignment.
+For example, if you want to align your codes like this:
+reg       [31:0]  my_reg;                       // comments...
+wire      [31:0]  my_wire     =   my_reg;       // comments...
+parameter [31:0]  my_param    =   para_value;   // comments...
+          10      18          30  34            48
+Then you can set me to '(10 18 30 34 48).
+
+* Electrics
+** Try to type "reg 32" and then type a space.
+** Try to type "10" and then type "b" or "h".
+** Type "begin" and then <Return>.
+
+* Signals
+** Move cursor onto a signal or macro, and then press F1.
+** When typing inside an always block, Try M-s.
+** Try to type double commas (",,"), Emacs will expand it into "<=".
+** To trace current signal's driver in current buffer, Try C-c C-d and C-c C-n.
+
+* Skeletons
+** Try C-c C-c C-a and C-c C-c a
+** Try C-c C-h to insert a header for current file.
+
+* Auto sense
+** Add "// auto sense //" before an always block, and then try C-c C-a.
+   vlog-mode will complete the sensitive list for you. Set these variables to
+   tune its bahavior:
+   vlog-auto-sense-abandon-old-list, vlog-auto-sense-refill-old-list.
