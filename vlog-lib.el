@@ -373,6 +373,16 @@ Return the paramter alist: '((name .  value) (name . value) ...)"
         (setq lnum (1+ lnum)))
       lnum)))
 
+(defun vlog-lib-get-module-name ()
+  "Return module name, nil if not found."
+  (save-excursion
+    (if (and
+         (vlog-re-search-backward "\\<\\(macro\\)*module\\>" (point-min) t)
+         (forward-word 1)
+         (vlog-re-search-forward "\\<\\(\\sw+\\)\\>" (point-max) t))
+        (match-string-no-properties 1)
+      nil)))
+
 (provide 'vlog-lib)
 
 ;;; vlog-lib.el ends here

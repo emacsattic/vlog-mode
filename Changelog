@@ -1,3 +1,14 @@
+2005-03-03  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-lib.el:
+	(vlog-lib-get-module-name): New function.
+
+	* vlog-mode.el:
+	(vlog-mode-auto-name-at-endmodule): New customizable
+	variable. Default value is t.
+	(vlog-mode-endmodule-auto-name-prefix): New customizable variable.
+	(vlog-mode-electric-return): Automatically add module name after
+	endmodule.  Some doc fixes too.
+
 2005-03-02  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-indent.el:
 	(vlog-indent-check-for-newline): Bug fix & Doc fix. Search back

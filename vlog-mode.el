@@ -260,6 +260,16 @@ If nil, use generic system task keywords regexp."
   "Toggle auto deletion of empty lines when hit return."
   :group 'vlog-mode
   :type  'toggle)
+
+(defcustom vlog-mode-auto-name-at-endmodule t
+  "Toggle auto insertion of module name when feed the endmodule line."
+  :group 'vlog-mode
+  :type  'toggle)
+
+(defcustom vlog-mode-endmodule-auto-name-prefix " // "
+  "The string added before the module name after endmodule."
+  :group 'vlog-mode
+  :type  'string)
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -499,9 +509,12 @@ call me."
 
 ;;+ vlog-mode electric keys ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-mode-electric-return ()
-  "Start a new line. if `vlog-mode-auto-indent' is t, do indentation also."
+  "Start a new line. if `vlog-mode-auto-indent' is t, do indentation also.  If
+`vlog-mode-auto-name-at-endmodule' is t, add module name after endmodule
+automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
   (interactive)
   (let ((block-end nil)
+        (mod-name  nil)
         (icol      nil))
     (if (and vlog-mode-auto-delete-empty-line
              (looking-back "^\\s-+"))
@@ -514,6 +527,12 @@ call me."
       (setq block-end "join")))
     (when block-end
       (setq icol (vlog-indent-level-at-pos)))
+    ;; insert module name if looking at endmodule
+    (when (and vlog-mode-auto-name-at-endmodule
+               (looking-back "\\<endmodule\\s-*")
+               (setq mod-name (vlog-lib-get-module-name)))
+      (delete-horizontal-space)
+      (insert (concat vlog-mode-endmodule-auto-name-prefix mod-name)))
     (insert "\n")
     (if (not (and vlog-mode-auto-end-block
                   (memq last-command '(vlog-mode-electric-n
