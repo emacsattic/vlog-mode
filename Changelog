@@ -1,3 +1,8 @@
+2005-03-11  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-lib.el:
+	(vlog-jump-out-useless-backward): Fix a bug when there are
+	multiple double-slashes ("//") in a single line.
+
 2005-03-03  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-lib.el:
 	(vlog-lib-get-module-name): New function.

@@ -142,8 +142,9 @@ match can start."
       (search-backward "\"")
       t)
      ((nth 7 state)             ;;Inside // comment
-      (search-backward "//")
-      (skip-chars-backward "/")
+      (goto-char (line-beginning-position))
+      (when (search-forward "//")
+        (backward-char 2))
       t)
      ((nth 4 state)             ;;Inside /* */ comment
       (search-backward "/*")
