@@ -572,7 +572,8 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
   "Check syntax and indentation for current common new line."
   (let ((type        nil)
         (icol        picol)
-        (search-back t))
+        (search-back t)
+        token)
     ;; type-str may be: `case' `r@' `)' `^' `}word' `;'
     (cond
      ((string= type-str "case")
@@ -610,8 +611,10 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
                   (throw 'done t))
                  ;; end/join/endfunction/endtask ...
                  ((looking-at "\\(end.*\\)\\|\\(join\\)")
+                  (setq token (match-string-no-properties 0))
                   (if (vlog-indent-goto-block-beg limit)
-                      (setq search-back nil)
+                      (unless (or (string= token "end") (string= token "join"))
+                        (setq search-back nil))
                     (setq type 'none)
                     (throw 'done nil)))
                  ;; module/endmodule...
@@ -664,7 +667,7 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
 
 (defun vlog-indent-goto-match-if (limit)
   "Parse code backward, find match `if' for current `else'.
-Strding across begin/fork/case[xz]? ... end/join/endcase blocks.
+Striding across begin/fork/case[xz]? ... end/join/endcase blocks.
 Return t if `if' is found, nil if limit met or match `if' not
 found.  Make sure you're looking at `else' when you call this
 function."
@@ -692,7 +695,7 @@ function."
                           regex)
                       (cond
                        ;; `end' found
-                       ((match-end 4)
+                       ((and (match-end 4) (not (match-end 5)))
                         (setq regex "\\<\\(begin\\)\\|\\(end\\)\\>"))
                        ;; `endcase' found
                        ((match-end 5)
