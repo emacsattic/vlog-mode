@@ -602,6 +602,7 @@ defined parameters."
                             "\\s-+\\([0-9a-zA-Z_]+\\)"))
       (let ((beg    (match-beginning 2))
             (end    (match-end 2))
+            (decl   (match-string-no-properties 1))
             (str    (match-string-no-properties 2))
             (width  nil)
             (wstr   ""))
@@ -609,7 +610,8 @@ defined parameters."
           (setq width (string-to-int str)))
         (setq wstr (if width
                        (if (> width 1) (int-to-string (1- width)) nil)
-                     (if (vlog-lib-get-module-para-val str)
+                     (if (and (not (string= decl "parameter"))
+                              (vlog-lib-get-module-para-val str))
                          (concat str "-1")
                        "")))
         (if (and wstr (string= wstr ""))
