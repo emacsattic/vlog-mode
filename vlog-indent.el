@@ -92,10 +92,10 @@ lined up with first character on line holding matching if."
   :type  'integer)
 
 (defvar vlog-indent-directives
-  '("`case" "`default" "`define" "`define" "`else" "`endfor" "`endif"
-    "`endprotect" "`endswitch" "`endwhile" "`for" "`format" "`if" "`ifdef"
-    "`ifndef" "`include" "`let" "`protect" "`switch" "`timescale"
-    "`time_scale" "`undef" "`while")
+  '("`case" "`celldefine" "`default" "`define" "`define" "`else"
+    "`endcelldefine" "`endfor" "`endif" "`endprotect" "`endswitch" "`endwhile"
+    "`for" "`format" "`if" "`ifdef" "`ifndef" "`include" "`let" "`protect"
+    "`switch" "`timescale" "`time_scale" "`undef" "`while")
   "Directive words for indentation.")
 (defvar vlog-indent-directives-re nil
   "Regexp built from `vlog-indent-directives'.")
@@ -570,8 +570,9 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
 
 (defun vlog-indent-check-for-newline (type-str picol limit)
   "Check syntax and indentation for current common new line."
-  (let ((type nil)
-        (icol picol))
+  (let ((type        nil)
+        (icol        picol)
+        (search-back t))
     ;; type-str may be: `case' `r@' `)' `^' `}word' `;'
     (cond
      ((string= type-str "case")
@@ -591,23 +592,26 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
             ;;(throw 'done nil))
         (catch 'done
           (while t
-            (if (vlog-re-search-backward vlog-indent-words-re (point-min) t)
+            (if (and search-back
+                     (vlog-re-search-backward vlog-indent-words-re (point-min) t)
+                     (setq search-back t))
                 (cond
                  ;; initial/always
                  ((looking-at vlog-indent-beh-words-re)
                   (setq type 'beh
                         icol (vlog-indent-level-at-pos))
                   (throw 'done t))
-                 ;; begin/fork...
+                 ;; begin/fork/function/task ...
                  ((looking-at vlog-indent-block-beg-words-re)
                   (if (looking-at "case[xz]?")
                       (setq type 'case)
                     (setq type 'block))
                   (setq icol (vlog-indent-level-at-pos))
                   (throw 'done t))
-                 ;; end/join...
+                 ;; end/join/endfunction/endtask ...
                  ((looking-at "\\(end.*\\)\\|\\(join\\)")
-                  (unless (vlog-indent-goto-block-beg limit)
+                  (if (vlog-indent-goto-block-beg limit)
+                      (setq search-back nil)
                     (setq type 'none)
                     (throw 'done nil)))
                  ;; module/endmodule...

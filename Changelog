@@ -1,49 +1,63 @@
+2005-03-02  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-indent.el:
+	(vlog-indent-check-for-newline): Bug fix & Doc fix. Search back
+	`vlog-indent-words-re' conditionally. `vlog-indent-goto-block-beg'
+	will place the cursor in front of the target word, so in this case
+	we should stop searching back for `vlog-indent-words-re'.
+
+	* vlog-lib.el:
+	(vlog-decl-type-words): add "event" and "integer" into this list.
+
+2005-02-25  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-indent.el:
+	(vlog-indent-directives): add "`celldefine" and "`endcelldefine".
+
 2005-01-31  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-indent:
+	* vlog-indent.el:
 	(vlog-indent-check-for-newline): Finish (while t ...) loop
 	appropriately.
 
 2005-01-15  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-mode:
+	* vlog-mode.el:
 	(vlog-mode-electric-space): Rewritten, now this command works well
 	with net declarations with defined parameters.
 	(vlog-mode-pragma-face): Use 'font-lock-preprocessor-face if it's
 	defined, or use 'font-lock-constant-face.
 
-	* vlog-signal:
+	* vlog-signal.el:
 	(vlog-signal-get-signal-width): Deal with parameters.
 	(vlog-signal-show-width): Support signal width with parameters.
 
 2005-01-14  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-auto:
+	* vlog-auto.el:
 	(vlog-auto-get-module-parameters):
 	Renamed to vlog-lib-get-module-parameters and moved to vlog-lib.
 
-	* vlog-lib:
+	* vlog-lib.el:
 	(vlog-lib-get-module-parameters): New function.
 	(vlog-lib-get-module-para-val): New function.
 
 2005-01-13  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-lib:
+	* vlog-lib.el:
 	(line-number-at-pos): Define it if not defined. (Compatible with
 	earlier Emacs versions.)
 
-	* vlog-auto:
+	* vlog-auto.el:
 	(vlog-auto-sense-update-this-block): New function.
 	(vlog-auto-get-always-block-signals): Do not force if/else matching.
 	(vlog-auto-output-parser-err): New function.
 
-	* vlog-mode:
+	* vlog-mode.el:
 	(vlog-mode-make-keymap): Bind vlog-auto-sense-update-this-block to
 	C-c C-u.
 
 2005-01-12  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-mode:
+	* vlog-mode.el:
 	(vlog-mode-electric-space): fixed the bug when there are non-space
 	characters after the cursor in the same line.
 
 2005-01-11  Sun Yijiang  <sunyijiang@gmail.com>
-	* vlog-lib:
+	* vlog-lib.el:
 	(vlog-skip-blank-and-useless-backward): when skip directive lines,
 	goto the end of previous line.
 
