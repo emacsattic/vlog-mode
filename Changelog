@@ -1,3 +1,14 @@
+2005-03-18  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode.el:
+	(vlog-mode-electric-space): Add "endmodule" automaticlly after
+	typing "module" and a space (auto-endmodule); Also auto-endcase;
+	Doc fix.
+	(vlog-mode-auto-end-module): New customizable variable. Default
+	value is t.
+	(vlog-mode-double-comma-prefix), (vlog-mode-double-comma-suffix):
+	New customizable variable. Each default value is nil.
+	(vlog-mode-electric-comma): Use prefix and suffix above.
+
 2005-03-16  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-mode.el:
 	(vlog-mode-electric-space): Do not expand width string with
@@ -57,8 +68,8 @@
 
 2005-01-14  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-auto.el:
-	(vlog-auto-get-module-parameters):
-	Renamed to vlog-lib-get-module-parameters and moved to vlog-lib.
+	(vlog-auto-get-module-parameters): Renamed to
+	vlog-lib-get-module-parameters and moved to vlog-lib.
 
 	* vlog-lib.el:
 	(vlog-lib-get-module-parameters): New function.
@@ -71,7 +82,8 @@
 
 	* vlog-auto.el:
 	(vlog-auto-sense-update-this-block): New function.
-	(vlog-auto-get-always-block-signals): Do not force if/else matching.
+	(vlog-auto-get-always-block-signals): Do not force if/else
+	matching.
 	(vlog-auto-output-parser-err): New function.
 
 	* vlog-mode.el:
@@ -99,7 +111,8 @@
 	(vlog-skel-user-name),
 	(vlog-skel-company-name): new variables.
 	
-	(vlog-mode-electric-comma): new command, double commas insert a "<=".
+	(vlog-mode-electric-comma): new command, double commas insert a
+	"<=".
 	(looking-back): add definition for old Emacs version.
 	(vlog-lib-auto-keyword-re): new variable.
 	

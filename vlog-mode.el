@@ -59,6 +59,21 @@ You can add your own keymaps running this hook."
   :type  'toggle
   :group 'vlog-mode)
 
+(defcustom vlog-mode-auto-end-module t
+  "If t, insert \"endmodule\" after \"module\"/\"macromodule\" automatically."
+  :type  'toggle
+  :group 'vlog-mode)
+
+(defcustom vlog-mode-double-comma-prefix nil
+  "Prefix string to add after you typed double comma."
+  :type  'string
+  :group 'vlog-mode)
+
+(defcustom vlog-mode-double-comma-suffix nil
+  "Suffix string to add after you typed double comma."
+  :type  'string
+  :group 'vlog-mode)
+
 (defvar vlog-mode-syntax-table nil
   "Syntax table used in `vlog-mode'.")
 
@@ -89,7 +104,7 @@ You can add your own keymaps running this hook."
 (defvar vlog-mode-keywordset-docs
   '("Fixme" "FIXME" "FixMe" "fixme"
     "Todo:" "TODO:" "ToDo:" "todo:"
-    "Doc:" "DOC:" "doc:")
+    "Doc:" "DOC:" "doc:" "synthesis")
   "In-comments documentation keywords in verilog sources. Emacs
 will highlight them with `vlog-mode-doc-face'.  To add you own,
 just add new words to this list, and then don't forget to call
@@ -596,33 +611,59 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
 
 (defun vlog-mode-electric-space ()
   "Expand \"reg 2\" into \"reg [1:0]\" automatically, works with
-defined parameters."
+defined parameters.
+Also add \"endmodule\" after \"module\" (\"endcase\" after \"case\"),
+if `vlog-mode-auto-end-module' (`vlog-mode-auto-end-block') is t."
   (interactive)
-  (if (looking-back (concat "\\(" vlog-decl-type-words-re "\\)"
-                            "\\s-+\\([0-9a-zA-Z_]+\\)"))
-      (let ((beg    (match-beginning 2))
-            (end    (match-end 2))
-            (decl   (match-string-no-properties 1))
-            (str    (match-string-no-properties 2))
-            (width  nil)
-            (wstr   ""))
-        (when (string-match "^[0-9]+$" str)
-          (setq width (string-to-int str)))
-        (setq wstr (if width
-                       (if (> width 1) (int-to-string (1- width)) nil)
-                     (if (and (not (string= decl "parameter"))
-                              (vlog-lib-get-module-para-val str))
-                         (concat str "-1")
-                       "")))
-        (if (and wstr (string= wstr ""))
-            (insert " ")
-          (kill-region beg end)
-          (vlog-lib-indent-to-column (car vlog-align-declaration-stop-list))
-          (if wstr (insert "[" wstr ":0" "]"))
-          (delete-horizontal-space)
-          (vlog-lib-indent-to-column (nth 1 vlog-align-declaration-stop-list))
-          (vlog-align-line)))
-    (insert " ")))
+  (cond
+   ;; auto expand width decl
+   ((looking-back (concat "\\(" vlog-decl-type-words-re "\\)"
+                          "\\s-+\\([0-9a-zA-Z_]+\\)"))
+    (let ((beg    (match-beginning 2))
+          (end    (match-end 2))
+          (decl   (match-string-no-properties 1))
+          (str    (match-string-no-properties 2))
+          (width  nil)
+          (wstr   ""))
+      (when (string-match "^[0-9]+$" str)
+        (setq width (string-to-int str)))
+      (setq wstr (if width
+                     (if (> width 1) (int-to-string (1- width)) nil)
+                   (if (and (not (string= decl "parameter"))
+                            (vlog-lib-get-module-para-val str))
+                       (concat str "-1")
+                     "")))
+      (if (and wstr (string= wstr ""))
+          (insert " ")
+        (kill-region beg end)
+        (vlog-lib-indent-to-column (car vlog-align-declaration-stop-list))
+        (if wstr (insert "[" wstr ":0" "]"))
+        (delete-horizontal-space)
+        (vlog-lib-indent-to-column (nth 1 vlog-align-declaration-stop-list))
+        (vlog-align-line))))
+   ;; auto endcase
+   ((and vlog-mode-auto-end-block
+         (looking-back "\\<case")
+         (eq last-command 'vlog-mode-electric-e))
+    (let ((icol (vlog-indent-level-at-pos)))
+      (save-excursion
+        (end-of-line)
+        (newline)
+        (vlog-lib-indent-to-column icol)
+        (insert "endcase")))
+    (insert " "))
+   ;; auto endmodule
+   ((and vlog-mode-auto-end-module
+         (looking-back "^\\(\\s-*\\)\\(macro\\)*module")
+         (eq last-command 'vlog-mode-electric-e))
+    (save-excursion
+      (end-of-line)
+      (newline)
+      (when (match-end 1)
+        (insert (match-string 1)))
+      (insert "endmodule"))
+    (insert " "))
+   (t (insert " "))))
 
 (defun vlog-mode-electric-semi ()
   "Insert `;', and then do something else."
@@ -636,7 +677,10 @@ defined parameters."
   (if (/= ?\, (preceding-char))
       (insert ",")
     (backward-delete-char 1)
-    (insert "<=")))
+    (insert
+     (if vlog-mode-double-comma-prefix vlog-mode-double-comma-prefix "")
+     "<="
+     (if vlog-mode-double-comma-suffix vlog-mode-double-comma-suffix ""))))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-mode)
