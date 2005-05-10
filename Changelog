@@ -1,3 +1,7 @@
+2005-05-10  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-lib.el:
+	(vlog-lib-make-regexp): Place regexp between '\<' and '\>'.
+
 2005-03-18  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-mode.el:
 	(vlog-mode-electric-space): Add "endmodule" automaticlly after
