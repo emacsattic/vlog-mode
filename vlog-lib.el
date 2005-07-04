@@ -284,8 +284,8 @@ If 2nd argument SKIP-DELAY is non-nil. skip time delays."
   (dolist (regexp
            '((vlog-decl-type-words . vlog-decl-type-words-re)))
     (set (cdr regexp)
-         (concat "\\<"
-                 (vlog-regexp-opt (symbol-value (car regexp)) t) "\\>"))))
+         (concat "\\<\\(?:"
+                 (vlog-regexp-opt (symbol-value (car regexp)) nil) "\\)\\>"))))
 
 (defun vlog-lib-indent-to-column (col)
   "Force Indent to column."
