@@ -359,7 +359,7 @@ Signals are stored in `vlog-auto-rvalue-list'."
     (goto-char beg)
     ;; any macro or number is ignored; hierarchical signals are not supported.
     (while (vlog-re-search-forward
-            "\\<\\(`\\|\\([0-9]+'\\)\\)?\\([a-zA-Z_][a-zA-Z0-9_]+\\)\\>" end t)
+            "\\<\\(`\\|\\([0-9]+'\\)\\)?\\([a-zA-Z_][a-zA-Z0-9_]*\\)\\>" end t)
       (setq value   (match-string-no-properties 3)
             ignorep (if (match-end 1) t nil))
       (when (not ignorep)
