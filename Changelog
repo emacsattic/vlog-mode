@@ -1,3 +1,7 @@
+2005-07-29  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode.el:
+	(vlog-mode-electric-bitwidth): Only enable this when point > 2
+
 2005-07-04  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-lib.el:
 	(vlog-lib-make-regexp): Use shy group and call `vlog-regexp-opt'

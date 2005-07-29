@@ -601,13 +601,14 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
   "Convert \"3b\" to \"3'b\" automatically."
   (interactive)
   (insert c)
-  (backward-char 2)
-  (if (looking-at "[0-9]")
-      (progn
-        (forward-char 1)
-        (insert "'")
-        (forward-char 1))
-    (forward-char 2)))
+  (when (> (point) 2)
+    (backward-char 2)
+    (if (looking-at "[0-9]")
+        (progn
+          (forward-char 1)
+          (insert "'")
+          (forward-char 1))
+      (forward-char 2))))
 
 (defun vlog-mode-electric-space ()
   "Expand \"reg 2\" into \"reg [1:0]\" automatically, works with
