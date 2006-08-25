@@ -85,16 +85,16 @@ You can add your own keymaps running this hook."
   "Type keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-structs
-  '("initial" "always" "function" "endfunction"
-    "task" "endtask" "module" "endmodule")
+  '("initial" "always"
+    "function" "task" "module" "primitive" "specify" "macromodule"
+    "endfunction" "endtask" "endmodule" "endprimitive" "endspecify")
   "Structure keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-keywords
   '("assign" "begin" "case" "casex" "casez" "default" "deassign" "disable"
-    "else" "end" "endcase" "endgenerate" "endprimitive" "endspecify"
-    "endtable" "for" "force" "forever" "fork" "generate" "if" "join"
-    "macromodule" "negedge" "posedge" "or" "primitive" "repeat" "release"
-    "specify" "table" "wait" "while")
+    "else" "end" "endcase" "endgenerate" "endtable" "for" "force" "forever"
+    "fork" "generate" "if" "join" "negedge" "posedge" "or" "repeat" "release"
+    "table" "wait" "while")
   "Keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-pragmas
@@ -535,11 +535,10 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
              (looking-back "^\\s-+"))
         (delete-horizontal-space)
       (vlog-align-line))
-    (cond
-     ((looking-back "\\<begin\\s-*")
-      (setq block-end "end"))
-     ((looking-back "\\<fork\\s-*")
-      (setq block-end "join")))
+    (setq block-end
+          (cond ((looking-back "\\<begin\\s-*") "end")
+                ((looking-back "\\<fork\\s-*")  "join")
+                (t "")))
     (when block-end
       (setq icol (vlog-indent-level-at-pos)))
     ;; insert module name if looking at endmodule
@@ -679,9 +678,9 @@ if `vlog-mode-auto-end-module' (`vlog-mode-auto-end-block') is t."
       (insert ",")
     (backward-delete-char 1)
     (insert
-     (if vlog-mode-double-comma-prefix vlog-mode-double-comma-prefix "")
+     (or vlog-mode-double-comma-prefix "")
      "<="
-     (if vlog-mode-double-comma-suffix vlog-mode-double-comma-suffix ""))))
+     (or vlog-mode-double-comma-suffix ""))))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-mode)
