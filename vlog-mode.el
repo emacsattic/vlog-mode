@@ -49,8 +49,8 @@
   "Keymap used in vlog-mode.")
 
 (defcustom vlog-mode-make-keymap-hook nil
-  "Normal hook that is run after vlog-mode-map is set.
-You can add your own keymaps running this hook."
+  "Normal hook that is run after `vlog-mode-map' is set.
+You can add your own keymaps using this hook."
   :type    'hook
   :group   'vlog-mode)
 
@@ -84,11 +84,21 @@ You can add your own keymaps running this hook."
     "tri0" "tri1" "triand" "trior" "trireg" "vectored" "wand" "wire" "wor")
   "Type keywords in verilog sources.")
 
+(defvar vlog-mode-keywordset-types-v2k
+  '("automatic" "localparam")
+  "Type keywords for Verilog 2000.")
+
 (defvar vlog-mode-keywordset-structs
   '("initial" "always"
     "function" "task" "module" "primitive" "specify" "macromodule"
     "endfunction" "endtask" "endmodule" "endprimitive" "endspecify")
   "Structure keywords in verilog sources.")
+
+(defvar vlog-mode-keywordset-structs-v2k
+  '("config" "endconfig" "library"
+    "pulsestyle_onevent" "pulsestyle_ondetect"
+    "showcancelled" "noshowcancelled")
+  "Additional structure keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-keywords
   '("assign" "begin" "case" "casex" "casez" "default" "deassign" "disable"
@@ -96,6 +106,10 @@ You can add your own keymaps running this hook."
     "fork" "generate" "if" "join" "negedge" "posedge" "or" "repeat" "release"
     "table" "wait" "while")
   "Keywords in verilog sources.")
+
+(defvar vlog-mode-keywordset-keywords-v2k
+  '("design" "instance" "cell" "use" "liblist" "genvar")
+  "Additional keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-pragmas
   '("synopsys")
@@ -124,10 +138,18 @@ If nil, use generic system task keywords regexp."
     "$monitorb" "$monitorh" "$monitoro" "$nochange" "$open" "$period"
     "$printtimescale" "$random" "$readmemb" "$readmemh" "$realtime"
     "$realtobits" "$recovery" "$rtoi" "$setup" "$setuphold" "$skew" "$stime"
-    "$stop" "$strobe" "$strobeb" "$strobeh" "$strobeo" "$time" "$timeformat"
-    "$width" "$write" "$write" "$writeb" "$writeb" "$writeh" "$writeh"
-    "$writeo" "$writeo")
+    "$stop" "$strobe" "$strobeb" "$strobeh" "$strobeo" "$test$" "$time"
+    "$timeformat" "$width" "$write" "$write" "$writeb" "$writeb" "$writeh"
+    "$writeh" "$writeo" "$writeo")
   "System task names.")
+
+(defvar vlog-mode-keywordset-systasks-v2k
+  '("$signed" "$unsigned" "$ferror" "$fgetc" "$fgets" "$fflush" "$fread"
+    "$fscanf" "$fseek" "$fsscanf" "$ftel" "$rewind" "$sformat" "$swrite"
+    "$swriteb" "$swriteh" "$swriteo" "$ungetc" "$value$" "$removal" "$recrem"
+    "$timeskew" "$fullskew" "$sdf_annotate" "$dumpports" "$dumpportsall"
+    "$dumpportsoff" "$dumpportson" "$dumpportslimit" "$dumpportsflush")
+  "System task names for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-types-regexp nil
   "Regexp of type keywords in verilog sources.")
@@ -168,6 +190,9 @@ If nil, use generic system task keywords regexp."
 
 (defvar vlog-mode-keywords-max nil
   "Level 2 (maximum) keywords to highlight in vlog-mode.")
+
+(defvar vlog-mode-v2k-enabled nil
+  "DO NOT touch me.  Use `vlog-mode-enable-v2k'")
 
 ;; faces ---------------------------------------------------------------------
 (defface vlog-mode-psl-tag-face
@@ -285,6 +310,11 @@ If nil, use generic system task keywords regexp."
   "The string added before the module name after endmodule."
   :group 'vlog-mode
   :type  'string)
+
+(defcustom vlog-mode-highlight-all-uppercase-words nil
+  "Toggle highlighting of all-uppercase words."
+  :group 'vlog-mode
+  :type  'toggle)
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -315,7 +345,6 @@ If nil, use generic system task keywords regexp."
                (stringp vlog-mode-keywordset-docs-regexp)
                (stringp vlog-mode-keywordset-systasks-regexp))
     (vlog-mode-make-keywords))
-  (make-local-variable 'font-lock-defaults)
   (setq font-lock-defaults
         (list
          '(vlog-mode-keywords-basic vlog-mode-keywords-medium vlog-mode-keywords-max)
@@ -415,7 +444,8 @@ If nil, use generic system task keywords regexp."
 (defun vlog-mode-make-keywords ()
   "Make keywords of different font-lock decoration levels,
 using `vlog-mode-keywordset-types', `vlog-mode-keywordset-structs',
-`vlog-mode-keywordset-keywords' and `vlog-mode-keywordset-pragmas'.
+`vlog-mode-keywordset-keywords', `vlog-mode-keywordset-pragmas',
+`vlog-mode-keywordset-docs' and `vlog-mode-keywordset-systasks'.
 Refer to `font-lock-maximum-decoration' for more infomation.
 
 To override or modify default keywords, set `vlog-mode-keywordset-*' and then
@@ -497,6 +527,11 @@ call me."
                  ;; identifiers
                  (list "\\(begin\\|fork\\)\\s-*:\\s-*\\(\\sw+\\)"
                        (list 2 vlog-mode-macro-face 'append))
+                 ;; All-uppercase words (Macros)
+                 (if vlog-mode-highlight-all-uppercase-words
+                     (list "\\<[A-Z][A-Z_]*\\>"
+                           (list 0 vlog-mode-macro-face 'append))
+                   nil)
                  ;; delays
                  (list "#\\s-*[0-9]+"
                        (list 0 vlog-mode-parameter-face 'append))
@@ -519,7 +554,26 @@ call me."
                        (list 2 vlog-mode-psl-content-face t))
                  ;; documents
                  (list (concat "//\\s-*\\(" vlog-mode-keywordset-docs-regexp "\\)")
-                       (list 1 vlog-mode-doc-face t))))))
+                       (list 1 vlog-mode-doc-face t)))))
+  t)
+
+(defun vlog-mode-enable-v2k ()
+  "Enable Verilog 2000 support."
+  (interactive)
+  (setq vlog-mode-v2k-enabled t)
+  (setq vlog-mode-keywordset-types
+   (append vlog-mode-keywordset-types
+           vlog-mode-keywordset-types-v2k))
+  (setq vlog-mode-keywordset-structs
+   (append vlog-mode-keywordset-structs
+           vlog-mode-keywordset-structs-v2k))
+  (setq vlog-mode-keywordset-keywords
+  (append vlog-mode-keywordset-keywords
+          vlog-mode-keywordset-keywords-v2k))
+  (setq vlog-mode-keywordset-systasks
+  (append vlog-mode-keywordset-systasks
+          vlog-mode-keywordset-systasks-v2k))
+  (vlog-mode-make-keywords))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ vlog-mode electric keys ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
