@@ -92,17 +92,17 @@ lined up with first character on line holding matching if."
   :type  'integer)
 
 (defvar vlog-indent-directives
-  '("`case" "`celldefine" "`default" "`define" "`define" "`else"
+  '("`case" "`celldefine" "`default" "`define" "`define" "`else" "`elsif"
     "`endcelldefine" "`endfor" "`endif" "`endprotect" "`endswitch" "`endwhile"
     "`for" "`format" "`if" "`ifdef" "`ifndef" "`include" "`let" "`protect"
-    "`switch" "`timescale" "`time_scale" "`undef" "`while")
+    "`switch" "`timescale" "`time_scale" "`undef" "`while" "`file" "`line")
   "Directive words for indentation.")
 (defvar vlog-indent-directives-re nil
   "Regexp built from `vlog-indent-directives'.")
 
 (defvar vlog-indent-calc-begs
   '("always" "initial" "module" "macromodule" "primitive"
-    "function" "task" "table" "specify" "generate"))
+    "function" "task" "table" "specify" "generate" "config"))
 (defvar vlog-indent-calc-begs-re nil)
 
 (defvar vlog-indent-paren-sexp-signs
@@ -123,8 +123,9 @@ lined up with first character on line holding matching if."
   "Regexp made of `vlog-indent-special-beg-daily-words'")
 (defvar vlog-indent-special-beg-scarce-words
   '("module" "macromodule" "primitive" "function" "task"
-    "table" "specify" "generate"))
-(defvar vlog-indent-special-beg-scarce-words-re nil)
+    "table" "specify" "generate" "config"))
+(defvar vlog-indent-special-beg-scarce-words-re nil
+  "Regexp made of `vlog-indent-special-beg-scarce-words'")
 
 (defvar vlog-indent-special-end-daily-words
   '("end" "join" "endcase" "else"))
@@ -132,19 +133,19 @@ lined up with first character on line holding matching if."
   "Regexp made of `vlog-indent-special-end-daily-words'")
 (defvar vlog-indent-special-end-scarce-words
   '("endmodule" "endprimitive" "endfunction" "endtask"
-    "endtable" "endspecify" "endgenerate"))
+    "endtable" "endspecify" "endgenerate" "endconfig"))
 (defvar vlog-indent-special-end-scarce-words-re nil)
 
 (defvar vlog-indent-beh-words
   '("always" "initial"))
 
 (defvar vlog-indent-block-beg-words
-  '("begin" "fork" "case" "casex" "casez"
-    "function" "task" "table" "specify" "generate"))
+  '("begin" "fork" "case" "casex" "casez" "function"
+    "task" "table" "specify" "generate" "config"))
 
 (defvar vlog-indent-block-end-words
-  '("end" "join" "endcase"
-    "endfunction" "endtask" "endtable" "endspecify" "endgenerate"))
+  '("end" "join" "endcase" "endfunction" "endtask" "endtable"
+    "endspecify" "endgenerate" "endconfig"))
 
 (defvar vlog-indent-defun-words
   '("module" "macromodule" "primitive" "endmodule" "endprimitive"))
@@ -516,7 +517,7 @@ string (for example, \"if\" or \"while\") of previous line."
                   ;; in case we are at "BRANCH: begin xxx = yyy; end"
                   (if (string= (match-string-no-properties 0) "else")
                       (list (cons 'else "") icol)
-                    (vlog-indent-goto-block-beg lim)
+                    (vlog-indent-goto-block-beg lim (match-string-no-properties 0))
                     (list (cons nil "}") icol))
                 (let ((word   nil)
                       (column nil)
@@ -586,7 +587,7 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
             icol 0))
      (t
       (if (looking-at "\\(end.*\\)\\|\\(join\\)")
-          (if (vlog-indent-goto-block-beg limit)
+          (if (vlog-indent-goto-block-beg limit (match-string-no-properties 0))
               (setq icol (vlog-indent-level-at-pos)
                     type 'block-end)
             (setq type 'none))
@@ -612,12 +613,12 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
                  ;; end/join/endfunction/endtask ...
                  ((looking-at "\\(end.*\\)\\|\\(join\\)")
                   (setq token (match-string-no-properties 0))
-                  (if (vlog-indent-goto-block-beg limit)
+                  (if (vlog-indent-goto-block-beg limit token)
                       (unless (or (string= token "end") (string= token "join"))
                         (setq search-back nil))
                     (setq type 'none)
                     (throw 'done nil)))
-                 ;; module/endmodule...
+                 ;; module/endmodule ...
                  ((looking-at vlog-indent-defun-words-re)
                   (setq icol (vlog-indent-level-at-pos))
                   (if (looking-at "end")
@@ -629,23 +630,29 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
               (throw 'done t)))))))
     (cons type icol)))
 
-(defun vlog-indent-goto-block-beg (limit)
+(defun vlog-indent-goto-block-beg (limit &optional end-word)
+  "Goto the beginning of a block.  Make sure you're looking at the end of a
+block when you call this function."
   (let ((level 1)
-        (ender (save-excursion
-                 (re-search-forward "\\(\\sw+\\)" (line-end-position) t)
-                 (match-string-no-properties 1)))
+        (ender (if (stringp end-word)
+                   end-word
+                 (save-excursion
+                   (re-search-forward "\\(\\sw+\\)" (line-end-position) t)
+                   (match-string-no-properties 1))))
         type beger regex)
-    (when (and (stringp ender)
-               (string-match
-                "\\<\\(end\\(case\\|function\\|generate\\|specify\\|ta\\(ble\\|sk\\)\\)?\\|\\(join\\)\\)\\>"
-                ender))
+    (when (or (stringp end-word)
+              (and (stringp ender)
+                   (string-match
+                    ;; end<case, function, generate, specify, table, task>, join
+                    "\\<\\(end\\(c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|\\(join\\)\\)\\>"
+                    ender)))
       (cond
        ((match-end 2)   ;; `endxxx' found
         (setq beger (match-string 2 ender))
         (if (string= beger "case")
             (setq type 'case)
           (setq type 'special)))
-       ((match-end 4)   ;; `join' found
+       ((match-end 3)   ;; `join' found
         (setq beger "fork"
               type  'fork))
        (t               ;; `end' found
