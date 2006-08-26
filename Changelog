@@ -1,3 +1,9 @@
+2006-08-27  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-indent.el:
+	[Add indent support for Verilog 2000.]
+	Add `elsif' support; Add `config ... endconfig' support.
+	(vlog-indent-goto-block-beg): Add an optional parameter `end-word'.
+
 2006-08-26  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-mode.el:
 	[Add keywords support for Verilog 2000.]
@@ -161,3 +167,7 @@
 	(vlog-lib-move-to-column): new functions.
 	
 	(vlog-auto.el): new package, provides auto-sense utilities.
+
+;;; Local Variables:
+;;; fill-column: 78
+;;; End:
