@@ -1,3 +1,24 @@
+2006-08-26  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode.el:
+	[Add keywords support for Verilog 2000.]
+	(vlog-mode-enable-v2k): New function.
+	(vlog-mode-highlight-all-uppercase-words): New custom variable.
+	(vlog-mode-keywordset-types-v2k)
+	(vlog-mode-keywordset-structs-v2k)
+	(vlog-mode-keywordset-keywords-v2k)
+	(vlog-mode-keywordset-systasks-v2k): New variables.
+	(vlog-mode-make-keymap-hook): Doc fix.
+	(vlog-mode-make-keywords): Doc fix; Don't make `font-lock-defaults'
+	buffer local explicitly (not necessary).
+
+2006-08-25  Sun Yijiang  <sunyijiang@gmail.com>
+	* vlog-mode.el:
+	(vlog-mode-keywordset-structs, vlog-mode-keywordset-types):
+	move "primitive", "specify" and "macromodule" from
+	`vlog-mode-keywordset-structs' to `vlog-mode-keywordset-types'
+	(vlog-mode-keywordset-pragmas): minor fix
+	(vlog-mode-electric-comma): minor fix
+
 2005-07-29  Sun Yijiang  <sunyijiang@gmail.com>
 	* vlog-mode.el:
 	(vlog-mode-electric-bitwidth): Only enable this when point > 2
