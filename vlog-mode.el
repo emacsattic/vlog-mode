@@ -329,7 +329,7 @@ If nil, use generic system task keywords regexp."
   ;; major mode settings
   (kill-all-local-variables)
   (setq major-mode 'vlog-mode)
-  (setq mode-name "vlog")
+  (setq mode-name (if vlog-mode-v2k-enabled "Verilog-2000" "Verilog"))
   (vlog-mode-make-keymap)
   (use-local-map vlog-mode-map)
   ;;
@@ -531,9 +531,9 @@ call me."
                        (list 1 vlog-mode-keyword-face)
                        (list 3 vlog-mode-module-face))
                  ;; function definitions
-                 (list "\\<function\\>\\s-+\\(integer\\|real\\(time\\)?\\|time\\)\\s-+\\(\\sw+\\)"
+                 (list "\\<function\\>\\s-+\\(integer\\|real\\(?:time\\)?\\|time\\)\\s-+\\(\\sw+\\)"
                        (list 1 vlog-mode-keyword-face)
-                       (list 3 vlog-mode-module-face t))
+                       (list 2 vlog-mode-module-face t))
                  (list "\\<function\\>\\s-+\\(\\[[^]]+\\]\\)\\s-+\\(\\sw+\\)"
                        (list 1 vlog-mode-keyword-face)
                        (list 2 vlog-mode-module-face 'append))
@@ -542,7 +542,18 @@ call me."
                  ;; autos
                  (list vlog-lib-auto-keyword-re
                        (list 1 vlog-mode-doc-face t)
-                       (list 2 vlog-mode-module-face t)))))
+                       (list 2 vlog-mode-module-face t)))
+                ;; Verilog 2000 support
+                (when vlog-mode-v2k-enabled
+                  (list
+                   (list "\\<\\(config\\|library\\)\\>\\s-+\\(\\sw+\\)"
+                         (list 2 vlog-mode-module-face 'append))
+                   ;; liblist
+                   (list "\\<liblist\\>\\(\\(\\s-+\\sw+\\)+\\)"
+                         (list 1 vlog-mode-module-face 'append))
+                   ;; design, instance
+                   (list "\\<\\(design\\|instance\\)\\>\\s-+\\([a-zA-Z][a-zA-Z0-9_.]*\\)"
+                         (list 2 vlog-mode-struct-face 'append))))))
   ;;
   ;; set maximum keywords
   (setq vlog-mode-keywords-max
@@ -565,11 +576,6 @@ call me."
                  ;; identifiers
                  (list "\\(begin\\|fork\\)\\s-*:\\s-*\\(\\sw+\\)"
                        (list 2 vlog-mode-macro-face 'append))
-                 ;; All-uppercase words (Macros)
-                 (if vlog-mode-highlight-all-uppercase-words
-                     (list "\\<[A-Z][A-Z_]*\\>"
-                           (list 0 vlog-mode-number-face 'append))
-                   nil)
                  ;; delays
                  (list "#\\s-*[0-9]+"
                        (list 0 vlog-mode-parameter-face 'append))
@@ -592,7 +598,11 @@ call me."
                        (list 2 vlog-mode-psl-content-face t))
                  ;; documents
                  (list (concat "//\\s-*\\(" vlog-mode-keywordset-docs-regexp "\\)")
-                       (list 1 vlog-mode-doc-face t)))))
+                       (list 1 vlog-mode-doc-face t)))
+                ;; All-uppercase words (Macros)
+                (when vlog-mode-highlight-all-uppercase-words
+                  (list
+                   (list "\\<[A-Z][A-Z_]*\\>" (list 0 vlog-mode-number-face 'append))))))
   t)
 
 (defun vlog-mode-enable-v2k ()
