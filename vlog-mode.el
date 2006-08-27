@@ -599,19 +599,32 @@ call me."
   "Enable Verilog 2000 support."
   (interactive)
   (setq vlog-mode-v2k-enabled t)
+  ;; add keywords for Verilog 2000
   (setq vlog-mode-keywordset-types
-   (append vlog-mode-keywordset-types
-           vlog-mode-keywordset-types-v2k))
+        (append vlog-mode-keywordset-types
+                vlog-mode-keywordset-types-v2k))
   (setq vlog-mode-keywordset-structs
-   (append vlog-mode-keywordset-structs
-           vlog-mode-keywordset-structs-v2k))
+        (append vlog-mode-keywordset-structs
+                vlog-mode-keywordset-structs-v2k))
   (setq vlog-mode-keywordset-keywords
-  (append vlog-mode-keywordset-keywords
-          vlog-mode-keywordset-keywords-v2k))
+        (append vlog-mode-keywordset-keywords
+                vlog-mode-keywordset-keywords-v2k))
   (setq vlog-mode-keywordset-systasks
-  (append vlog-mode-keywordset-systasks
-          vlog-mode-keywordset-systasks-v2k))
-  (vlog-mode-make-keywords))
+        (append vlog-mode-keywordset-systasks
+                vlog-mode-keywordset-systasks-v2k))
+  (vlog-mode-make-keywords)
+  ;; add config...endconfig block support for Verilog 2000
+  (setq vlog-indent-special-end-scarce-words
+        (append vlog-indent-special-end-scarce-words '("endconfig")))
+  (setq vlog-indent-block-end-words
+        (append vlog-indent-block-end-words '("endconfig")))
+  (setq vlog-indent-block-beg-words
+        (append vlog-indent-block-beg-words '("config")))
+  (setq vlog-indent-special-beg-scarce-words
+        (append vlog-indent-special-beg-scarce-words '("config")))
+  (setq vlog-indent-calc-begs
+        (append vlog-indent-calc-begs '("config")))
+  (vlog-indent-make-regexps))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ vlog-mode electric keys ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
