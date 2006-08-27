@@ -152,7 +152,9 @@
 ;;- signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (defun vlog-signal-smart-insert ()
-  "Insert the target signal within current module."
+  "Insert the target signal and corresponding assignment.
+This command is useful because in most cases only one signal
+is concerned within an always block."
   (interactive)
   (let ((beg (point))
         (end (point))
@@ -166,7 +168,7 @@
           (goto-char beg)
           (insert sig " " (match-string 4) " ")
           (vlog-indent-line))
-      (message "always-block not found!"))))
+      (message "You should use this command when you are inside an always block."))))
 
 (defun vlog-signal-trace-driver ()
   "Trace signal driver in current buffer."
