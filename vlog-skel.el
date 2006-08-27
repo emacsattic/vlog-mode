@@ -48,12 +48,12 @@
   :type  'string
   :group 'vlog-mode-skel)
 
-(defcustom vlog-skel-user-name "SetMe"
+(defcustom vlog-skel-user-name "vlog-mode user"
   "User name for vlog-mode."
   :type  'string
   :group 'vlog-mode-skel)
 
-(defcustom vlog-skel-company-name "SMTH.org"
+(defcustom vlog-skel-company-name "www.gnu.org"
   "Company name for vlog-mode."
   :type  'string
   :group 'vlog-mode-skel)
@@ -170,9 +170,7 @@ Set `vlog-skel-header-string' to customize your own header."
 
 (defun vlog-skel-format-string (fstr)
   "Return formated strings."
-  (let ((type nil)
-        (data nil)
-        temp)
+  (let (type data temp)
     (if (not (string-match "^\\(\\w+\\)\\([ \t]+\\(.+\\)\\)*$" fstr))
         fstr
       (setq type (match-string 1 fstr)
