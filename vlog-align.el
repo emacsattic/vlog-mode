@@ -63,20 +63,42 @@ Then you can set me to '(10 18 30 34 48)."
   :group 'vlog-mode
   :type  '(repeat integer))
 
+(defcustom vlog-align-do-align-for-port-list t
+  "If t, do align with for port list."
+  :group 'vlog-mode
+  :type  'toggle)
+
+(defcustom vlog-align-do-align-for-assign t
+  "If t, do align with for assign statement."
+  :group 'vlog-mode
+  :type  'toggle)
+
+;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
 (defun vlog-align-line (&optional inparen)
   "Do align for this line. If INPAREN is set, 'inparen means in
-parens, and 'normal means not in parens. If INPAREN is not set, I'll
-figure it out myself."
+parenthesis, and 'normal means not in parens.  If INPAREN is not
+set, I'll figure it out myself."
   (interactive)
-  (let ((orig (point-marker)))
+  (save-excursion
     (beginning-of-line)
-    (skip-chars-forward " \t" (line-end-position))
-    (if (if inparen (eq inparen 'inparen) (vlog-in-parens-p))
-        (if (eq (char-after) ?\.)
-            (vlog-align-do-port-conn)
-          (vlog-align-do-inparen-normal))
-      (vlog-align-do-declaration))
-    (goto-char (marker-position orig))))
+    (let ((orig (point-marker))
+          (icol (skip-syntax-forward "\\s-" (line-end-position))))
+      (if (if inparen (eq inparen 'inparen) (vlog-in-parens-p))
+          ;; inside parenthesis
+          (cond
+           ;; for port connection line
+           ((eq (char-after) ?\.)
+            (vlog-align-do-port-conn))
+           ;; for declaration
+           ((and vlog-align-do-align-for-port-list
+                 (looking-at "\\(in[op]\\|outp\\)ut"))
+            (vlog-align-do-declaration icol))
+           ;; for others
+           (t (vlog-align-do-inparen-normal)))
+        ;; outside parenthesis
+        (vlog-align-do-declaration icol))
+      (goto-char (marker-position orig)))))
 
 (defun vlog-align-do-inparen-normal ()
   "Do align for normal lines inside parens."
@@ -113,21 +135,36 @@ figure it out myself."
        (t
         (setq state 'done))))))
 
-(defun vlog-align-do-declaration ()
-  "Do align for declaration lines."
+(defun vlog-align-do-declaration (&optional icol)
+  "Do align for declaration lines.
+Optional arg ICOL is the indentation column of current line."
+  (setq icol (if (numberp icol) icol 0))
   (let ((state 'init))
     (while (and (not (eq state 'done))
                 (not (eolp)))
       (cond
        ((eq state 'init)
         (if (not (looking-at vlog-decl-type-words-re))
-            (setq state 'done)
-          (vlog-re-search-forward "\\sw+\\s-*" (line-end-position) t)
-          (setq state 'bitw)))
+            (if (and vlog-align-do-align-for-assign
+                     (looking-at "assign\\>"))
+                (progn
+                  (forward-word 1)
+                  (vlog-skip-blank-and-useless-forward (line-end-position))
+                  (setq state 'name))
+              (setq state 'done))
+          (forward-word 1)
+          (vlog-skip-blank-and-useless-forward (line-end-position))
+            ;; for Verilog 2000, more stuffs show up ...
+            (when vlog-mode-v2k-enabled
+              (while (looking-at vlog-decl-type-words-re)
+                (just-one-space)
+                (forward-word 1)
+                (vlog-skip-blank-and-useless-forward (line-end-position))))
+            (setq state 'bitw)))
        ((eq state 'bitw)
         (if (not (looking-at "\\["))
             (setq state 'name)
-          (vlog-lib-indent-to-column (car vlog-align-declaration-stop-list))
+          (vlog-lib-indent-to-column (+ icol (car vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward "\\]" (line-end-position) t)
               (progn
                 (skip-chars-forward " \t" (line-end-position))
@@ -136,7 +173,7 @@ figure it out myself."
        ((eq state 'name)
         (if (not (looking-at "\\sw"))
             (setq state 'done)
-          (vlog-lib-indent-to-column (nth 1 vlog-align-declaration-stop-list))
+          (vlog-lib-indent-to-column (+ icol (nth 1 vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward "[=;]" (line-end-position) t)
               (if (string= (match-string 0) ";")
                   (progn
@@ -146,14 +183,14 @@ figure it out myself."
                 (setq state 'equal))
             (setq state 'done))))
        ((eq state 'equal)
-        (vlog-lib-indent-to-column (nth 2 vlog-align-declaration-stop-list))
+        (vlog-lib-indent-to-column (+ icol (nth 2 vlog-align-declaration-stop-list)))
         (forward-char 1)
         (skip-chars-forward " \t" (line-end-position))
         (setq state 'value))
        ((eq state 'value)
         (if (not (looking-at "\\sw"))
             (setq state 'done)
-          (vlog-lib-indent-to-column (nth 3 vlog-align-declaration-stop-list))
+          (vlog-lib-indent-to-column (+ icol (nth 3 vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward ";" (line-end-position) t)
               (progn
                 (skip-chars-forward " \t" (line-end-position))
@@ -161,7 +198,7 @@ figure it out myself."
             (setq state 'done))))
        ((eq state 'comment)
         (when (looking-at "/\\(/\\|\\*\\)")
-          (vlog-lib-indent-to-column (nth 4 vlog-align-declaration-stop-list)))
+          (vlog-lib-indent-to-column (+ icol (nth 4 vlog-align-declaration-stop-list))))
         (setq state 'done))
        (t (setq state 'done))))))
 
