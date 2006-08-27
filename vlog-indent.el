@@ -206,23 +206,23 @@ Return nil if failed, and a indentation column if done."
   "Indentation function in vlog-mode. Set as `indent-line-function'.
 If SHOW-INFO-ONLY is non-nil, do no indentation, just message indent info."
   (interactive "P")
-  (let* ((info  (vlog-indent-figure-out))
-         (type  (car info))
-         (icol  (nth 1 info))
-         (cicol icol)
-         (ctype (nth 2 info))
-         (isym  nil))
+  (let* ((info (vlog-indent-figure-out))
+         (prev (car info))      ;; syntactic type of previous line
+         (icol (nth 1 info))    ;; indent column of previous line
+         (curr (nth 2 info))    ;; syntactic type of current line
+         (isym nil))            ;; indent symbol
     (setq isym
           (cond
            ;; input [1:0] i_port; etc.
-           ((eq type 'defun) nil)
+           ((eq prev 'defun) nil)
            ;; if/for/repeat/while/wait (...)
-           ((or (eq type 'contl-paren-cond)
-                (eq type 'contl-else))
-            (if (eq ctype 'begin)
+           ((or (eq prev 'contl-paren-cond)
+                (eq prev 'contl-else))
+            (if (eq curr 'begin)
                 'vlog-indent-level-block
               'vlog-indent-level-cond))
-           ((eq type 'inparen)
+           ;; in parenthesis
+           ((eq prev 'inparen)
             (unless vlog-indent-align-port-list-to-paren
               (save-excursion
                 (beginning-of-line)
@@ -234,42 +234,42 @@ If SHOW-INFO-ONLY is non-nil, do no indentation, just message indent info."
                           "\\(\\sw+\\)\\s-+\\(#\\s-*([^)]+)\\)*\\s-*\\(\\sw+\\)\\s-*(")
                          (not (string-match vlog-indent-paren-cond-signs-re (match-string 3))))
                     (list 'abs vlog-indent-level-port-list)))))
-           ((or (eq type 'else)
-                (eq type 'beh)
-                (eq type 'block-end))
+           ((or (eq prev 'else)
+                (eq prev 'beh)
+                (eq prev 'block-end))
             nil)
-           ((eq type 'case)
+           ((eq prev 'case)
             'vlog-indent-level-case-inside)
-           ((or (eq type 'block)
-                (eq type 'contl-block-begin))
+           ((or (eq prev 'block)
+                (eq prev 'contl-block-begin))
             'vlog-indent-level-block-inside)
-           ((or (eq type 'contl-common)
-                (eq type 'contl-paren-normal))
-            (if (eq ctype 'begin)
+           ((or (eq prev 'contl-common)
+                (eq prev 'contl-paren-normal))
+            (if (eq curr 'begin)
                 'vlog-indent-level-block
               'vlog-indent-level-default))
-           ((eq type 'contl-paren-at-beh)
-            (if (eq ctype 'begin)
+           ((eq prev 'contl-paren-at-beh)
+            (if (eq curr 'begin)
                 'vlog-indent-level-block-beh
               'vlog-indent-level-beh))
-           ((eq type 'contl-comma) nil)
-           ((eq type 'contl-branch)
+           ((eq prev 'contl-comma) nil)
+           ((eq prev 'contl-branch)
             'vlog-indent-level-case-branch-inside)
-           ((eq type 'none) (list 'abs 0))
+           ((eq prev 'none) (list 'abs 0))
            (t (if (numberp icol)
                   nil
                 'none))))
     (if show-info-only
         (message (format "%s"
-                         (list (cons type (if isym isym 'no-indent)) icol)))
+                         (list (cons prev (if isym isym 'no-indent)) icol)))
       (unless (eq isym 'none)
         (vlog-indent-do
          (if (and isym (listp isym))
              (if (numberp (cadr isym)) (cadr isym) 0)
-           (+ icol (if (symbol-value isym) (symbol-value isym) 0)))))
+           (+ icol (or (symbol-value isym) 0)))))
       (when vlog-align-do-align-with-indent
-        (vlog-align-line type)))
-    (cons type isym)))
+        (vlog-align-line prev)))
+    (cons prev isym)))
 
 (defun vlog-indent-do (icol)
   "Indent current line to ICOL."
