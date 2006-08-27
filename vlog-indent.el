@@ -640,12 +640,11 @@ block when you call this function."
                    (re-search-forward "\\(\\sw+\\)" (line-end-position) t)
                    (match-string-no-properties 1))))
         type beger regex)
-    (when (or (stringp end-word)
-              (and (stringp ender)
-                   (string-match
-                    ;; end<case, function, generate, specify, table, task>, join
-                    "\\<\\(end\\(c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|\\(join\\)\\)\\>"
-                    ender)))
+    (when (and (stringp ender)
+               (string-match
+                ;; end<case, function, generate, specify, table, task>, join
+                "\\<\\(end\\(c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|\\(join\\)\\)\\>"
+                ender))
       (cond
        ((match-end 2)   ;; `endxxx' found
         (setq beger (match-string 2 ender))
