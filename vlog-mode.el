@@ -88,7 +88,7 @@ You can add your own keymaps using this hook."
   "Type keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-types-v2k
-  '("automatic" "localparam")
+  '("automatic" "localparam" "unsigned")
   "Type keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-structs
