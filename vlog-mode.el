@@ -48,6 +48,9 @@
 (defvar vlog-mode-map nil
   "Keymap used in vlog-mode.")
 
+(defvar vlog-mode-menu-map nil
+  "Menu keymap for vlog-mode.")
+
 (defcustom vlog-mode-make-keymap-hook nil
   "Normal hook that is run after `vlog-mode-map' is set.
 You can add your own keymaps using this hook."
@@ -436,7 +439,42 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map ","        'vlog-mode-electric-comma)
     (define-key vlog-mode-map "\M-s"     'vlog-signal-smart-insert)
     (define-key vlog-mode-map [C-backspace]  'vlog-lib-hungry-back-delete)
-    (define-key vlog-mode-map [f1]       'vlog-show-this-signal-width-echo))
+    (define-key vlog-mode-map [f1]       'vlog-show-this-signal-width-echo)
+    ;; Menus for vlog-mode
+    (setq vlog-mode-menu-map (make-sparse-keymap "Verilog"))
+    (define-key vlog-mode-map [menu-bar] (make-sparse-keymap))
+    (define-key vlog-mode-map [menu-bar vlog-mode]
+      (cons "Verilog" vlog-mode-menu-map))
+    (define-key vlog-mode-menu-map [comment-region]
+      '("Comment/Uncomment Region" . comment-dwim))
+    (define-key vlog-mode-menu-map [indent-region]
+      '("Indent Region" . indent-region))
+    (define-key vlog-mode-menu-map [indent-line]
+      '("Indent Current Line" . indent-for-tab-command))
+    (define-key vlog-mode-menu-map [align-line]
+      '("Align Current Line" . vlog-align-line))
+    (define-key vlog-mode-menu-map [sep-indent] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [show-signal-width]
+      '("Show Width of Current Signal" . vlog-show-this-signal-width-echo))
+    (define-key vlog-mode-menu-map [hungry-delete]
+      '("Hungry Back Delete" . vlog-lib-hungry-back-delete))
+    (define-key vlog-mode-menu-map [trace-next]
+      '("Trace Signal Driver (Next)" . vlog-signal-trace-driver-next))
+    (define-key vlog-mode-menu-map [trace-driver]
+      '("Trace Signal Driver" . vlog-signal-trace-driver))
+    (define-key vlog-mode-menu-map [sep-insert] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [update-sense]
+      '("Update Sensitive List" . vlog-auto-sense-update-this-block))
+    (define-key vlog-mode-menu-map [auto-sense]
+      '("Generate Sensitive List" . vlog-auto-sense))
+    (define-key vlog-mode-menu-map [smart-insert]
+      '("Insert a Signal Assignment" . vlog-signal-smart-insert))
+    (define-key vlog-mode-menu-map [always-comb]
+      '("Insert Comb-logic Always Block" . vlog-skel-smart-always-comb))
+    (define-key vlog-mode-menu-map [always-edge]
+      '("Insert Edge-event Always Block" . vlog-skel-smart-always-edge))
+    (define-key vlog-mode-menu-map [add-header]
+      '("Add a Header for Current Buffer" . vlog-skel-smart-header)))
   (run-hooks vlog-mode-make-keymap-hook))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
@@ -530,7 +568,7 @@ call me."
                  ;; All-uppercase words (Macros)
                  (if vlog-mode-highlight-all-uppercase-words
                      (list "\\<[A-Z][A-Z_]*\\>"
-                           (list 0 vlog-mode-macro-face 'append))
+                           (list 0 vlog-mode-number-face 'append))
                    nil)
                  ;; delays
                  (list "#\\s-*[0-9]+"
