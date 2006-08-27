@@ -102,7 +102,7 @@ lined up with first character on line holding matching if."
 
 (defvar vlog-indent-calc-begs
   '("always" "initial" "module" "macromodule" "primitive"
-    "function" "task" "table" "specify" "generate" "config"))
+    "function" "task" "table" "specify" "generate"))
 (defvar vlog-indent-calc-begs-re nil)
 
 (defvar vlog-indent-paren-sexp-signs
@@ -122,8 +122,8 @@ lined up with first character on line holding matching if."
 (defvar vlog-indent-special-beg-daily-words-re nil
   "Regexp made of `vlog-indent-special-beg-daily-words'")
 (defvar vlog-indent-special-beg-scarce-words
-  '("module" "macromodule" "primitive" "function" "task"
-    "table" "specify" "generate" "config"))
+  '("module" "macromodule" "primitive" "function"
+    "task" "table" "specify" "generate"))
 (defvar vlog-indent-special-beg-scarce-words-re nil
   "Regexp made of `vlog-indent-special-beg-scarce-words'")
 
@@ -133,7 +133,7 @@ lined up with first character on line holding matching if."
   "Regexp made of `vlog-indent-special-end-daily-words'")
 (defvar vlog-indent-special-end-scarce-words
   '("endmodule" "endprimitive" "endfunction" "endtask"
-    "endtable" "endspecify" "endgenerate" "endconfig"))
+    "endtable" "endspecify" "endgenerate"))
 (defvar vlog-indent-special-end-scarce-words-re nil)
 
 (defvar vlog-indent-beh-words
@@ -141,11 +141,11 @@ lined up with first character on line holding matching if."
 
 (defvar vlog-indent-block-beg-words
   '("begin" "fork" "case" "casex" "casez" "function"
-    "task" "table" "specify" "generate" "config"))
+    "task" "table" "specify" "generate"))
 
 (defvar vlog-indent-block-end-words
-  '("end" "join" "endcase" "endfunction" "endtask" "endtable"
-    "endspecify" "endgenerate" "endconfig"))
+  '("join" "end" "endcase" "endfunction" "endtask"
+    "endtable" "endspecify" "endgenerate"))
 
 (defvar vlog-indent-defun-words
   '("module" "macromodule" "primitive" "endmodule" "endprimitive"))
@@ -154,6 +154,7 @@ lined up with first character on line holding matching if."
 
 (defvar vlog-indent-beh-words-re nil)
 (defvar vlog-indent-block-beg-words-re nil)
+(defvar vlog-indent-block-end-words-re nil)
 (defvar vlog-indent-defun-words-re nil)
 (defvar vlog-indent-words-re nil)
 
@@ -179,6 +180,7 @@ call me."
              (vlog-indent-special-end-scarce-words . vlog-indent-special-end-scarce-words-re)
              (vlog-indent-beh-words . vlog-indent-beh-words-re)
              (vlog-indent-block-beg-words . vlog-indent-block-beg-words-re)
+             (vlog-indent-block-end-words . vlog-indent-block-end-words-re)
              (vlog-indent-defun-words . vlog-indent-defun-words-re)
              (vlog-indent-words . vlog-indent-words-re)
              (vlog-indent-calc-begs . vlog-indent-calc-begs-re)))
@@ -403,15 +405,16 @@ Possible types are:
   "Return t if current line is a continued line of previous line.
 If LIMIT is non-nil, use it as search limit.
 
-If a continued line, return a list (TYPE INDENT).  INDENT is
-previous line's (empty lines and comments are ignored, so it's
-more precise to say \"syntacticlly previous line\") indentation
-colomn while TYPE is a list describing previous line's syntactic
-type.  TYPE is a list, the car of TYPE is nil or non-nil.  If
-it's nil, previous line is not close, so current line is a
-continued line; If it's non-nil, it's a closed line, so current
-line is a new line.  cdr of TYPE is syntactic relative
-string (for example, \"if\" or \"while\") of previous line."
+For a continued line, return a list (TYPE INDENT).  INDENT is
+previous line's (more precisely \"syntacticlly previous line\",
+because empty lines and comments are ignored) indentation colomn
+while TYPE is a list describing previous line's syntactic type.
+
+TYPE is a list, the car of TYPE is nil or non-nil.  If it's nil,
+previous line is not close, so current line is a continued line;
+If it's non-nil, it's a closed line, so current line is a new
+line.  The cdr of TYPE is syntactic relative string (\"if\", \"while\"
+e.g.) of previous line."
   (interactive)
   (let ((lim  (min (point) (if (numberp limit) limit (point-min))))
         (orig nil)
@@ -424,14 +427,14 @@ string (for example, \"if\" or \"while\") of previous line."
             ;; skip useless things backward from the end of previous line
             (vlog-skip-blank-and-useless-backward lim)
             (setq icol (vlog-indent-level-at-pos))
-            ;; now we're at the end of line, begin our checks
+            ;; now we're at the end of line, check the last char first:
             (cond
              ;;-- a `;' is the end of everything in verilog, [CLOSED]
              ((= (preceding-char) ?\;)
               (list (cons nil ";") icol))
 
              ;;-- we're after a `)', so find the corresponding `(' and make
-             ;;-- decision on that guy.
+             ;;-- decision with that one.
              ((= (preceding-char) ?\))
               (setq orig (point))
               (condition-case nil (backward-list) (error nil))
@@ -455,7 +458,7 @@ string (for example, \"if\" or \"while\") of previous line."
                     ;; check what's before the `@', result stored in word
                     (setq word
                           (save-excursion
-                            (search-backward "@" (line-beginning-position) t)
+                            (backward-char 1)
                             (re-search-backward "\\(\\s-\\|^\\)\\(\\sw+\\)"
                                                 (line-beginning-position) t)
                             (match-string-no-properties 2)))
@@ -464,8 +467,8 @@ string (for example, \"if\" or \"while\") of previous line."
                      ((not (stringp word))
                       (list (cons 'paren " @") icol))
                      ;; `initial @ (xxx...)' or `always @ (xxx...)', [OPEN]
-                     ((or (string= word "initial")
-                          (string= word "always"))
+                     ((or (string= word "always")
+                          (string= word "initial"))
                       (list (cons 'paren ">@") icol))
                      ;; `repeat @ (xxx...)', [ClOSED]
                      ((string= word "repeat")
@@ -494,6 +497,15 @@ string (for example, \"if\" or \"while\") of previous line."
                           (list (cons nil "case") icol)
                         ;; dummies (...), [OPEN]
                         (list (cons 'paren (concat (if (stringp word) word " ") "?")) icol))))))))
+
+             ;;-- for Verilog 2000
+             ((and vlog-mode-v2k-enabled
+                   (= (preceding-char) ?\*))
+              (save-excursion
+                (backward-char 1)
+                (if (looking-back "always\\s-+@")
+                    (list (cons 'paren ">@") icol)
+                  (list (cons 'nil "") icol))))
 
              ;;-- beginning of buffer
              ((bobp)
@@ -634,6 +646,7 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
   "Goto the beginning of a block.  Make sure you're looking at the end of a
 block when you call this function."
   (let ((level 1)
+        ;; look for an ender if parameter END-WORD is not given
         (ender (if (stringp end-word)
                    end-word
                  (save-excursion
@@ -643,24 +656,23 @@ block when you call this function."
     (when (and (stringp ender)
                (string-match
                 ;; end<case, function, generate, specify, table, task>, join
-                "\\<\\(end\\(c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|\\(join\\)\\)\\>"
+                vlog-indent-block-end-words-re
+                ;;"\\<\\(end\\(?:c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|join\\)\\>"
                 ender))
+      ;; what are we looking for?
       (cond
-       ((match-end 2)   ;; `endxxx' found
-        (setq beger (match-string 2 ender))
-        (if (string= beger "case")
-            (setq type 'case)
-          (setq type 'special)))
-       ((match-end 3)   ;; `join' found
-        (setq beger "fork"
-              type  'fork))
-       (t               ;; `end' found
-        (setq beger "begin"
-              type  'begin)))
-      (if (eq type 'special)
-          ;; if function/generate/specifu/task/table, no recursive search
+       ;; `end'
+       ((string= ender "end")  (setq beger "begin"))
+       ;; `join'
+       ((string= ender "join") (setq beger "fork"))
+       ;; `endfoo'
+       (t (setq type (if (string= ender "endcase") 'case 'non-nested)
+                beger (substring ender 3))))
+      ;; now let's search the beginning
+      (if (eq type 'non-nested)
+          ;; function/generate/specifu/task/table, so no recursive search
           (vlog-re-search-backward (concat "\\<" beger "\\>") limit t)
-        (when (string= beger "case") (setq beger "case[xz]?"))
+        (when (eq type 'case) (setq beger "case[xz]?"))
         (catch 'done
           (while t
             (if (vlog-re-search-backward
@@ -695,7 +707,7 @@ function."
                    ;; `else' found
                    ((match-end 3)
                     (setq level-else (1+ level-else)))
-                   ;; here comes troubles ...
+                   ;; here come troubles ...
                    (t
                     (let ((nest 1)
                           regex)
