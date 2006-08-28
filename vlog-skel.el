@@ -34,7 +34,7 @@
   :group 'vlog-mode)
 
 (defcustom vlog-skel-always-at-string "always @"
-  "Default clock signal name for `vlog-skel-smart-always'."
+  "Default always block beginning for `vlog-skel-smart-always'."
   :type  'string
   :group 'vlog-mode-skel)
 
