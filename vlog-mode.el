@@ -82,13 +82,17 @@ You can add your own keymaps using this hook."
 
 ;; keyword sets and regexps --------------------------------------------------
 (defvar vlog-mode-keywordset-types
-  '("defparam" "event" "inout" "input" "integer" "output" "parameter" "real"
-    "realtime" "reg" "signed" "supply" "supply0" "supply1" "time" "tri"
-    "tri0" "tri1" "triand" "trior" "trireg" "vectored" "wand" "wire" "wor")
+  '("buf" "bufif0" "bufif1" "cmos" "defparam" "event" "highz0" "highz1"
+    "inout" "input" "integer" "large" "medium" "nmos" "output" "parameter"
+    "pmos" "pull0" "pull1" "pullup" "pulldown" "rcmos" "real" "realtime"
+    "reg" "rnmos" "rpmos" "rtran" "rtranif0" "rtranif1" "scalared" "small"
+    "signed" "specparam" "strong0" "strong1" "supply" "supply0" "supply1"
+    "time" "tran" "tranif0" "tranif1" "tri" "tri0" "tri1" "triand" "trior"
+    "trireg" "vectored" "wand" "weak0" "weak1" "wire" "wor" "xnor" "xor")
   "Type keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-types-v2k
-  '("automatic" "localparam" "unsigned")
+  '("automatic" "localparam" "unsigned" "uwire")
   "Type keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-structs
@@ -104,14 +108,15 @@ You can add your own keymaps using this hook."
   "Additional structure keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-keywords
-  '("assign" "begin" "case" "casex" "casez" "default" "deassign" "disable"
-    "else" "end" "endcase" "endgenerate" "endtable" "for" "force" "forever"
-    "fork" "generate" "if" "join" "negedge" "posedge" "or" "repeat" "release"
-    "table" "wait" "while")
+  '("and" "assign" "begin" "case" "casex" "casez" "default" "deassign"
+    "disable" "edge" "else" "end" "endcase" "endgenerate" "endtable" "for"
+    "force" "forever" "fork" "generate" "if" "ifnone" "join" "nand" "negedge"
+    "nor" "not" "notif0" "notif1" "or" "posedge" "repeat" "release" "table"
+    "wait" "while")
   "Keywords in verilog sources.")
 
 (defvar vlog-mode-keywordset-keywords-v2k
-  '("design" "instance" "cell" "use" "liblist" "genvar")
+  '("design" "instance" "cell" "use" "liblist" "genvar" "include" "incdir")
   "Additional keywords for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-pragmas
@@ -177,9 +182,12 @@ If nil, use generic system task keywords regexp."
   "Generic system task name regexp.")
 
 (defvar vlog-mode-keywordset-number-regexp
-  "\\<\\([\\-]?[0-9]+\\('[hdxboHDXBO][0-9a-fA-FxXzZ_]+\\)*\\)\
-\\|\\([0-9.]+[eE]-?[0-9]+\\)\\>"
+  "\\<\\([\\-]?[0-9]+\\('[hdxboHDXBO][0-9a-fA-FxXzZ_]+\\)*\\)\\|\\([0-9.]+[eE]-?[0-9]+\\)\\>"
   "Regexp of number keywords in verilog sources.")
+
+(defvar vlog-mode-keywordset-number-v2k-regexp
+  "\\<\\([\\-]?[0-9]+\\('[sS]?[hdxboHDXBO][0-9a-fA-FxXzZ_]+\\)*\\)\\|\\([0-9.]+[eE]-?[0-9]+\\)\\>"
+  "Regexp of number keywords in verilog sources for Verilog 2000.")
 
 (defvar vlog-mode-keywordset-operator-regexp
   "[+-*/!~&|\\^<>=?:]"
@@ -571,7 +579,9 @@ call me."
                  (list "@"
                        (list 0 vlog-mode-operator-face))
                  ;; numbers
-                 (list vlog-mode-keywordset-number-regexp
+                 (list (if vlog-mode-v2k-enabled
+                           vlog-mode-keywordset-number-v2k-regexp
+                         vlog-mode-keywordset-number-regexp)
                        (list 0 vlog-mode-number-face))
                  ;; identifiers
                  (list "\\(begin\\|fork\\)\\s-*:\\s-*\\(\\sw+\\)"
