@@ -519,7 +519,7 @@ If nil, use generic system task keywords regexp."
       '("Insert Edge-event Always Block" . vlog-skel-smart-always-edge))
     (define-key vlog-mode-menu-map [add-header]
       '("Add a Header for Current Buffer" . vlog-skel-smart-header)))
-  (run-hooks vlog-mode-make-keymap-hook))
+  (run-hooks 'vlog-mode-make-keymap-hook))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ font-lock highlighting ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -680,7 +680,11 @@ call me."
         (append vlog-indent-special-beg-scarce-words '("config")))
   (setq vlog-indent-calc-begs
         (append vlog-indent-calc-begs '("config")))
-  (vlog-indent-make-regexps))
+  (vlog-indent-make-regexps)
+  (add-hook 'vlog-mode-make-keymap-hook
+            (lambda ()
+              (define-key vlog-mode-map "s" 'vlog-mode-electric-s)
+              (define-key vlog-mode-map "S" 'vlog-mode-electric-S))))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ vlog-mode electric keys ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -759,15 +763,9 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
 
 (defun vlog-mode-electric-bitwidth (c)
   "Convert \"3b\" to \"3'b\" automatically."
-  (insert c)
-  (when (> (point) 2)
-    (backward-char 2)
-    (if (looking-at "[0-9]")
-        (progn
-          (forward-char 1)
-          (insert "'")
-          (forward-char 1))
-      (forward-char 2))))
+  (and (looking-back "\\<[0-9]+")
+       (insert "'"))
+  (insert c))
 
 (defun vlog-mode-electric-b ()
   "Add possible ' before inserting b, for numbers."
@@ -798,6 +796,16 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
   "Add possible ' before inserting X, for numbers."
   (interactive)
   (vlog-mode-electric-bitwidth "X"))
+
+(defun vlog-mode-electric-s ()
+  "Add possible ' before inserting s, for numbers (Verilog 2000)."
+  (interactive)
+  (vlog-mode-electric-bitwidth "s"))
+
+(defun vlog-mode-electric-S ()
+  "Add possible ' before inserting S, for numbers (Verilog 2000)."
+  (interactive)
+  (vlog-mode-electric-bitwidth "S"))
 
 (defun vlog-mode-electric-space ()
   "Expand \"reg 2\" into \"reg [1:0]\" automatically, works with
