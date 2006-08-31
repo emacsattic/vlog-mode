@@ -462,26 +462,28 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map "f"        'vlog-mode-electric-f)
     (define-key vlog-mode-map "k"        'vlog-mode-electric-k)
     (define-key vlog-mode-map "n"        'vlog-mode-electric-n)
-    (define-key vlog-mode-map "b"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "b")))
-    (define-key vlog-mode-map "B"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "B")))
-    (define-key vlog-mode-map "h"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "h")))
-    (define-key vlog-mode-map "H"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "H")))
-    (define-key vlog-mode-map "D"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "D")))
-    (define-key vlog-mode-map "x"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "x")))
-    (define-key vlog-mode-map "X"        (lambda () (interactive)
-                                           (vlog-mode-electric-bitwidth "X")))
+    (define-key vlog-mode-map "b"        'vlog-mode-electric-b)
+    (define-key vlog-mode-map "B"        'vlog-mode-electric-B)
+    (define-key vlog-mode-map "h"        'vlog-mode-electric-h)
+    (define-key vlog-mode-map "H"        'vlog-mode-electric-H)
+    (define-key vlog-mode-map "D"        'vlog-mode-electric-D)
+    (define-key vlog-mode-map "x"        'vlog-mode-electric-x)
+    (define-key vlog-mode-map "X"        'vlog-mode-electric-X)
     (define-key vlog-mode-map ";"        'vlog-mode-electric-semi)
     (define-key vlog-mode-map " "        'vlog-mode-electric-space)
     (define-key vlog-mode-map ","        'vlog-mode-electric-comma)
     (define-key vlog-mode-map "\M-s"     'vlog-signal-smart-insert)
     (define-key vlog-mode-map [C-backspace]  'vlog-lib-hungry-back-delete)
     (define-key vlog-mode-map [f1]       'vlog-show-this-signal-width-echo)
+    (dolist (cmd (list 'vlog-mode-electric-d 'vlog-mode-electric-e
+                       'vlog-mode-electric-f 'vlog-mode-electric-k
+                       'vlog-mode-electric-n 'vlog-mode-electric-b
+                       'vlog-mode-electric-B 'vlog-mode-electric-h
+                       'vlog-mode-electric-H 'vlog-mode-electric-D
+                       'vlog-mode-electric-x 'vlog-mode-electric-X
+                       'vlog-mode-electric-semi 'vlog-mode-electric-space
+                       'vlog-mode-electric-comma))
+      (put cmd 'delete-selection t))
     ;; Menus for vlog-mode
     (setq vlog-mode-menu-map (make-sparse-keymap "Verilog"))
     (define-key vlog-mode-map [menu-bar] (make-sparse-keymap))
@@ -757,7 +759,6 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
 
 (defun vlog-mode-electric-bitwidth (c)
   "Convert \"3b\" to \"3'b\" automatically."
-  (interactive)
   (insert c)
   (when (> (point) 2)
     (backward-char 2)
@@ -767,6 +768,36 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
           (insert "'")
           (forward-char 1))
       (forward-char 2))))
+
+(defun vlog-mode-electric-b ()
+  "Add possible ' before inserting b, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "b"))
+
+(defun vlog-mode-electric-B ()
+  "Add possible ' before inserting B, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "B"))
+
+(defun vlog-mode-electric-h ()
+  "Add possible ' before inserting h, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "h"))
+
+(defun vlog-mode-electric-D ()
+  "Add possible ' before inserting D, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "D"))
+
+(defun vlog-mode-electric-x ()
+  "Add possible ' before inserting x, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "x"))
+
+(defun vlog-mode-electric-X ()
+  "Add possible ' before inserting X, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "X"))
 
 (defun vlog-mode-electric-space ()
   "Expand \"reg 2\" into \"reg [1:0]\" automatically, works with
