@@ -648,7 +648,7 @@ call me."
                 ;; All-uppercase words (Macros)
                 (when vlog-mode-highlight-all-uppercase-words
                   (list
-                   (list "\\<[A-Z][A-Z0-9_]*\\>" (list 0 vlog-mode-number-face 'append))))))
+                   (list "\\<[A-Z][A-Z0-9_]+\\>" (list 0 vlog-mode-number-face 'append))))))
   t)
 
 (defun vlog-mode-enable-v2k ()
