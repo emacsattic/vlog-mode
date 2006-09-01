@@ -374,6 +374,8 @@ If nil, use generic system task keywords regexp."
   (setq mode-name (if vlog-mode-v2k-enabled "Verilog-2000" "Verilog"))
   (vlog-mode-make-keymap)
   (use-local-map vlog-mode-map)
+  (set (make-local-variable 'imenu-create-index-function)
+       'vlog-imenu-create-index-function)
   ;;
   ;; set syntax table
   (make-local-variable 'vlog-mode-syntax-table)
