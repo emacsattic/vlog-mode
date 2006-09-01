@@ -389,6 +389,21 @@ Return the paramter alist: '((name .  value) (name . value) ...)"
         (match-string-no-properties 1)
       nil)))
 
+(defun vlog-lib-get-current-word (&optional return-nil)
+  "Return the current word I'm looking at.
+If RETURN-NIL is t, then return nil if none."
+  (let* ((fword (if (looking-at "\\sw+\\>")
+                    (match-string-no-properties 0)
+                  ""))
+         (bword (if (looking-back "\\<\\sw+")
+                    (match-string-no-properties 0)
+                  ""))
+         (word (concat bword fword)))
+    (when (and return-nil
+               (string= word ""))
+      (setq word nil))
+    word))
+
 (provide 'vlog-lib)
 
 ;;; vlog-lib.el ends here
