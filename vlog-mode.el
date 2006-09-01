@@ -458,6 +458,9 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map "\C-c\C-d" 'vlog-signal-trace-driver)
     (define-key vlog-mode-map "\C-c\C-n" 'vlog-signal-trace-driver-next)
     (define-key vlog-mode-map "\C-c "    'vlog-align-line)
+    (define-key vlog-mode-map "\C-c{"    'vlog-goto-block-beg)
+    (define-key vlog-mode-map "\C-c}"    'vlog-goto-block-end)
+    (define-key vlog-mode-map "\C-c%"    'vlog-goto-block-match)
     (define-key vlog-mode-map "\C-c\C-h" 'vlog-skel-smart-header)
     (define-key vlog-mode-map "d"        'vlog-mode-electric-d)
     (define-key vlog-mode-map "e"        'vlog-mode-electric-e)
@@ -500,6 +503,13 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-menu-map [align-line]
       '("Align Current Line" . vlog-align-line))
     (define-key vlog-mode-menu-map [sep-indent] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [block-match]
+      '("Goto Block Match" . vlog-goto-block-match))
+    (define-key vlog-mode-menu-map [block-end]
+      '("Goto Block End" . vlog-goto-block-end))
+    (define-key vlog-mode-menu-map [block-beg]
+      '("Goto Block Beg" . vlog-goto-block-beg))
+    (define-key vlog-mode-menu-map [sep-goto] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [show-signal-width]
       '("Show Width of Current Signal" . vlog-show-this-signal-width-echo))
     (define-key vlog-mode-menu-map [hungry-delete]
@@ -886,6 +896,46 @@ if `vlog-mode-auto-end-module' (`vlog-mode-auto-end-block') is t."
      (or vlog-mode-double-comma-prefix "")
      "<="
      (or vlog-mode-double-comma-suffix ""))))
+;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+;;+ block navigation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun vlog-goto-block-beg ()
+  "Go to beginning of the block, works with:
+begin/end, fork/join, case/endcase, <block>/end<block>, ...
+
+If the cursor is standing on `begin', then go to the matching `end'.
+If the cursor is not on `begin', then search the nearest `end'."
+  (interactive)
+  (let ((word (vlog-lib-get-current-word)))
+    (push-mark)
+    (if (string-match vlog-indent-block-end-words-re word)
+        (vlog-indent-goto-block-beg (point-min) word)
+      (vlog-re-search-backward vlog-indent-block-beg-words-re 1 t))))
+
+(defun vlog-goto-block-end ()
+  "Go to end of the block, works with:
+begin/end, fork/join, case/endcase, <block>/end<block>, ...
+
+If the cursor is standing on `end', then go to the matching `begin'.
+If the cursor is not on `end', then search the nearest `begin'."
+  (interactive)
+  (let ((word (vlog-lib-get-current-word)))
+    (push-mark)
+    (if (string-match vlog-indent-block-beg-words-re word)
+        (vlog-indent-goto-block-end (point-max) word)
+      (vlog-re-search-forward vlog-indent-block-end-words-re (point-max) t))))
+
+(defun vlog-goto-block-match ()
+  "Go to matching beginning or the end of the block, works with:
+begin/end, fork/join, case/endcase, <block>/end<block>, ..."
+  (interactive)
+  (let ((word (vlog-lib-get-current-word)))
+    (if (string-match vlog-indent-block-beg-words-re word)
+        (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
+      (if (string-match vlog-indent-block-end-words-re word)
+          (progn (push-mark) (vlog-indent-goto-block-beg (point-min) word))
+        (message "`%s' is not a beg or end of a block.")))))
+
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-mode)
