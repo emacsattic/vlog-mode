@@ -181,10 +181,11 @@ If LIMIT is non-nil, use it as limit."
          (t
           (throw 'done t)))))))
 
-(defun vlog-skip-blank-and-useless-forward (&optional limit skip-delay)
+(defun vlog-skip-blank-and-useless-forward (&optional limit skip-delay regexp)
   "Skip blanks, strings, comments and directives forward.
 If 1st argument LIMIT is non-nil, use it as limit.
-If 2nd argument SKIP-DELAY is non-nil. skip time delays."
+If 2nd argument SKIP-DELAY is non-nil, skip time delays.
+If 3rd argument REGEXP is non-nil, skip REGEXP."
   (let ((lim (if (numberp limit) limit (point-max)))
         orig end)
     (catch 'done
@@ -225,9 +226,12 @@ If 2nd argument SKIP-DELAY is non-nil. skip time delays."
                 (goto-char end)
               (goto-char orig)
               (throw 'done nil))))
+         ;; skip regexp
+         ((and (stringp regexp)
+               (looking-at regexp))
+          (goto-char (match-end 0)))
          ;; non-blank & non-comment reached, finish
-         (t
-          (throw 'done t)))))))
+         (t (throw 'done t)))))))
 ;;- search without strings and comments ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ syntax parsing ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
