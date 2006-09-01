@@ -147,12 +147,12 @@ Nil means `vlog-indent-directives-re' is generated from
   '("always" "initial"))
 
 (defvar vlog-indent-block-beg-words
-  '("begin" "fork" "case" "casex" "casez" "function"
-    "task" "table" "specify" "generate"))
+  '("begin" "fork" "case" "casex" "casez" "function" "task"
+    "table" "specify" "generate" "module" "macromodule"))
 
 (defvar vlog-indent-block-end-words
   '("join" "end" "endcase" "endfunction" "endtask"
-    "endtable" "endspecify" "endgenerate"))
+    "endtable" "endspecify" "endgenerate" "endmodule"))
 
 (defvar vlog-indent-defun-words
   '("module" "macromodule" "primitive" "endmodule" "endprimitive"))
@@ -653,8 +653,8 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
     (cons type icol)))
 
 (defun vlog-indent-goto-block-beg (limit &optional end-word)
-  "Goto the beginning of a block.  Make sure you're looking at the end of a
-block when you call this function."
+  "Goto the beginning of a block.  Make sure you're looking at
+the end of a block when you call this function."
   (let ((level 1)
         ;; look for an ender if parameter END-WORD is not given
         (ender (if (stringp end-word)
@@ -662,36 +662,89 @@ block when you call this function."
                  (save-excursion
                    (re-search-forward "\\(\\sw+\\)" (line-end-position) t)
                    (match-string-no-properties 1))))
-        type beger regex)
-    (when (and (stringp ender)
-               (string-match
-                ;; end<case, function, generate, specify, table, task>, join
-                vlog-indent-block-end-words-re
-                ;;"\\<\\(end\\(?:c\\(?:ase\\|onfig\\)\\|function\\|generate\\|specify\\|ta\\(?:ble\\|sk\\)\\)?\\|join\\)\\>"
-                ender))
-      ;; what are we looking for?
-      (cond
-       ;; `end'
-       ((string= ender "end")  (setq beger "begin"))
-       ;; `join'
-       ((string= ender "join") (setq beger "fork"))
-       ;; `endfoo'
-       (t (setq type (if (string= ender "endcase") 'case 'non-nested)
-                beger (substring ender 3))))
-      ;; now let's search the beginning
-      (if (eq type 'non-nested)
-          ;; function/generate/specifu/task/table, so no recursive search
-          (vlog-re-search-backward (concat "\\<" beger "\\>") limit t)
-        (when (eq type 'case) (setq beger "case[xz]?"))
-        (catch 'done
-          (while t
-            (if (vlog-re-search-backward
-                 (concat "\\(\\<" beger "\\>\\)\\|\\(\\<" ender "\\>\\)") limit t)
-                (if (match-end 2)
-                    (setq level (1+ level))
-                  (setq level (1- level))
-                  (when (= 0 level) (throw 'done t)))
-              (throw 'done nil))))))))
+        type beger stone)
+    (if (and (stringp ender)
+             (string-match
+              ;; end<case casex casez function task table specify generate
+              ;; module config> join
+              vlog-indent-block-end-words-re
+              ender))
+        ;; what are we looking for?
+        (progn
+          (cond
+           ;; `end'
+           ((string= ender "end") (setq beger "begin"))
+           ;; `join'
+           ((string= ender "join") (setq beger "fork"))
+           ;; `endfoo'
+           (t (setq type (if (string= ender "endcase") 'case 'non-nested))
+              (setq beger (if (eq type 'case)
+                              "case[xz]?"
+                            (substring ender 3)))))
+          (setq beger (concat "\\<" beger "\\>"))
+          (setq stone (concat "\\(" beger "\\)\\|\\(\\<" ender "\\>\\)"))
+          ;; now let's search the beginning
+          (if (eq type 'non-nested)
+              ;; function/generate/specifu/task/table, so no recursive search
+              (vlog-re-search-backward beger limit t)
+            (catch 'done
+              (while t
+                (if (vlog-re-search-backward stone limit t)
+                    (if (match-end 2)
+                        (setq level (1+ level))
+                      (setq level (1- level))
+                      (when (= 0 level) (throw 'done t)))
+                  (throw 'done nil))))))
+      (message "`%s' does not seem like a block end" ender)
+      nil)))
+
+(defun vlog-indent-goto-block-end (limit &optional beg-word)
+  "Goto the end of a block.  Make sure you're looking at the
+beginning of a block when you call this function."
+  (let ((level 1)
+        ;; look for an ender if parameter END-WORD is not given
+        (beger (if (stringp beg-word)
+                   beg-word
+                 (and (looking-at "\\<\\sw+\\>")
+                      (match-string-no-properties 0))))
+        type ender stone)
+    (if (and (stringp beger)
+             (string-match
+              ;; begin fork case casex casez function task table specify
+              ;; generate module macromodule config
+              vlog-indent-block-beg-words-re
+              beger))
+        (progn
+          ;; skip this one first
+          (forward-word 1)
+          ;; what are we looking for?
+          (cond
+           ;; `begin'
+           ((string= beger "begin") (setq ender "end"))
+           ;; `fork'
+           ((string= beger "fork") (setq ender "join"))
+           ;; `other'
+           (t (setq type (if (string-match "\\(case\\)[xz]?" beger)
+                             'case
+                           'non-nested)
+                    ender (concat "end" (or (match-string 1 beger)
+                                            beger)))))
+          (setq ender (concat "\\<" ender "\\>"))
+          (setq stone (concat "\\(\\<" beger "\\>\\)\\|\\(" ender "\\)"))
+          ;; now let's search the beginning
+          (if (eq type 'non-nested)
+              ;; function/generate/specifu/task/table, so no recursive search
+              (vlog-re-search-forward ender limit t)
+            (catch 'done
+              (while t
+                (if (vlog-re-search-forward stone limit t)
+                    (if (match-end 1)
+                        (setq level (1+ level))
+                      (setq level (1- level))
+                      (when (= 0 level) (throw 'done t)))
+                  (throw 'done nil))))))
+      (message "`%s' does not seem like a block beginning" beger)
+      nil)))
 
 (defun vlog-indent-goto-match-if (limit)
   "Parse code backward, find match `if' for current `else'.
