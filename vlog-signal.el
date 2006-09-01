@@ -31,7 +31,7 @@
 
 (defvar vlog-signal-trace-regexp nil
   "DO NOT touch me.")
-
+(make-variable-buffer-local 'vlog-signal-trace-regexp)
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()
   "Show signal width in echo area."
@@ -195,7 +195,40 @@ is concerned within an always block."
         (forward-word 1)
         (vlog-re-search-forward vlog-signal-trace-regexp (point-max) t))
       (goto-char (match-beginning 0))
-    (message "No more signal driver found.")))
+    (message "No more signal driver for signal %s." vlog-signal-trace-regexp)))
+
+;;+ imenu support ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;; (regexp-opt '("input" "output" "inout" "reg" "wire") t)
+(defvar vlog-signal-decl-re "\\<\\(\\(?:in\\|out\\)put\\|reg\\|wire\\|inout\\)\\>"
+  "Regexp for signal declaration.")
+
+;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
+(defvar vlog-signal-decl-2-re "\\[.+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
+  "Regexp for signal declaration.")
+
+(defun vlog-imenu-create-index-function ()
+  "Imenu support function for verilog.   This function is set as the value of
+`imenu-create-index-function'."
+  (save-excursion
+  (beginning-of-buffer)
+  (let (entries bound)
+    (while (vlog-re-search-forward vlog-signal-decl-re (point-max) t)
+      (setq bound (line-end-position))
+      (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
+        (if (vlog-in-parens-p)
+            ;; within module port list
+            (when (looking-at "\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)")
+              (add-to-list
+               'entries
+               (cons (match-string-no-properties 1) (point-marker))))
+          ;; not within module port list
+          (while (vlog-re-search-forward
+                  "\\s-*,?\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)" bound t)
+            (add-to-list
+             'entries
+             (cons (match-string-no-properties 1) (point-marker))))))
+    entries)))
+;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-signal)
 
