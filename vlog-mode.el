@@ -433,7 +433,7 @@ If nil, use generic system task keywords regexp."
   (modify-syntax-entry ?`  "w"      table)
   (modify-syntax-entry ?_  "w"      table)
   (modify-syntax-entry ?#  "w"      table)  ;; add `#' for delay syntax.
-  (modify-syntax-entry ?\' "."      table)
+  (modify-syntax-entry ?\' "w"      table)  ;; `'' is used in numbers.
   (modify-syntax-entry ?/  ". 124b" table)
   (modify-syntax-entry ?*  ". 23"   table)
   (modify-syntax-entry ?\n "> b"    table))
@@ -648,7 +648,7 @@ call me."
                 ;; All-uppercase words (Macros)
                 (when vlog-mode-highlight-all-uppercase-words
                   (list
-                   (list "\\<[A-Z][A-Z0-9_]+\\>" (list 0 vlog-mode-number-face 'append))))))
+                   (list "\\<[A-Z][A-Z0-9_]*\\>" (list 0 vlog-mode-number-face 'append))))))
   t)
 
 (defun vlog-mode-enable-v2k ()
@@ -781,6 +781,11 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
   "Add possible ' before inserting h, for numbers."
   (interactive)
   (vlog-mode-electric-bitwidth "h"))
+
+(defun vlog-mode-electric-H ()
+  "Add possible ' before inserting H, for numbers."
+  (interactive)
+  (vlog-mode-electric-bitwidth "H"))
 
 (defun vlog-mode-electric-D ()
   "Add possible ' before inserting D, for numbers."
