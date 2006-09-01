@@ -91,6 +91,13 @@ lined up with first character on line holding matching if."
   :group 'vlog-mode-indent
   :type  'integer)
 
+(defcustom vlog-use-generic-directive t
+  "Non-nil means `vlog-indent-directives-re' is set to generic.
+Nil means `vlog-indent-directives-re' is generated from
+`vlog-indent-directives'"
+  :group 'vlog-mode-indent
+  :type  'boolean)
+
 (defvar vlog-indent-directives
   '("`case" "`celldefine" "`default" "`define" "`define" "`else" "`elsif"
     "`endcelldefine" "`endfor" "`endif" "`endprotect" "`endswitch" "`endwhile"
@@ -171,8 +178,7 @@ call me."
                 vlog-indent-block-end-words
                 vlog-indent-defun-words))
   (dolist (regexp
-           '((vlog-indent-directives . vlog-indent-directives-re)
-             (vlog-indent-paren-sexp-signs . vlog-indent-paren-sexp-signs-re)
+           '((vlog-indent-paren-sexp-signs . vlog-indent-paren-sexp-signs-re)
              (vlog-indent-paren-cond-signs . vlog-indent-paren-cond-signs-re)
              (vlog-indent-special-beg-daily-words . vlog-indent-special-beg-daily-words-re)
              (vlog-indent-special-beg-scarce-words . vlog-indent-special-beg-scarce-words-re)
@@ -185,7 +191,11 @@ call me."
              (vlog-indent-words . vlog-indent-words-re)
              (vlog-indent-calc-begs . vlog-indent-calc-begs-re)))
     (set (cdr regexp)
-         (vlog-regexp-wrap (vlog-regexp-opt (symbol-value (car regexp)) nil)))))
+         (vlog-regexp-wrap (vlog-regexp-opt (symbol-value (car regexp)) nil))))
+  (setq vlog-indent-directives-re
+        (if vlog-use-generic-directive
+            "`\\sw+\\>"
+          (vlog-regexp-wrap (vlog-regexp-opt vlog-indent-directives nil)))))
 
 (defun vlog-indent-level-at-pos (&optional pos)
   "Calculate line's indentation level at point POS.
