@@ -798,6 +798,25 @@ function."
     (if result t
       (goto-char pos) nil)))
 
+(defun vlog-indent-this-block ()
+  "Indent the current block if we're looking at a block beg/end, works with:
+begin/end, fork/join, case/endcase, <block>/end<block>, ..."
+  (interactive)
+  (let ((word (vlog-lib-get-current-word))
+        (work t)
+        beg end pt)
+    (save-excursion
+      (if (string-match vlog-indent-block-beg-words-re word)
+          (progn (setq pt (point))
+                 (vlog-indent-goto-block-end (point-max) word))
+        (if (string-match vlog-indent-block-end-words-re word)
+            (progn (setq pt (point))
+                   (vlog-indent-goto-block-beg (point-min) word))
+          (message "`%s' is not a beg or end of a block." word)
+          (setq work nil)))
+      (and work
+           (indent-region (min (point) pt) (max (point) pt))))))
+
 (provide 'vlog-indent)
 
 ;;; vlog-indent.el ends here
