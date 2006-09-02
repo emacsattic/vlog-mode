@@ -32,6 +32,10 @@
 (defvar vlog-signal-trace-regexp nil
   "DO NOT touch me.")
 (make-variable-buffer-local 'vlog-signal-trace-regexp)
+
+(defvar vlog-signal-trace-signame nil
+  "DO NOT touch me.")
+(make-variable-buffer-local 'vlog-signal-trace-signame)
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()
   "Show signal width in echo area."
@@ -183,6 +187,7 @@ is concerned within an always block."
     (setq sig-regexp2
           (concat "([ \t]*" sig "[ \t]*)"))
     (setq vlog-signal-trace-regexp sig-regexp)
+    (setq vlog-signal-trace-signame sig)
     (goto-char (point-min))
     (when (or (vlog-re-search-forward sig-regexp (point-max) t)
               (vlog-re-search-forward sig-regexp2 (point-max) t))
@@ -195,7 +200,7 @@ is concerned within an always block."
         (forward-word 1)
         (vlog-re-search-forward vlog-signal-trace-regexp (point-max) t))
       (goto-char (match-beginning 0))
-    (message "No more signal driver for signal %s." vlog-signal-trace-regexp)))
+    (message "No more signal driver for signal %s." vlog-signal-trace-signame)))
 
 ;;+ imenu support ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;; (regexp-opt '("input" "output" "inout" "reg" "wire") t)
