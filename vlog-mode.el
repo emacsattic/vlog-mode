@@ -451,8 +451,9 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map "\C-c\C-s"
       (lambda () (interactive)
         (message (format "%s" (vlog-indent-figure-out)))))
-    (define-key vlog-mode-map "\C-c\C-i"
+    (define-key vlog-mode-map "\C-ci"
       (lambda () (interactive) (vlog-indent-line t)))
+    (define-key vlog-mode-map "\C-c\C-i" 'vlog-indent-this-block)
     (define-key vlog-mode-map "\C-c\C-a" 'vlog-auto-sense)
     (define-key vlog-mode-map "\C-c\C-u" 'vlog-auto-sense-update-this-block)
     (define-key vlog-mode-map "\C-c\C-d" 'vlog-signal-trace-driver)
@@ -503,13 +504,15 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-menu-map [align-line]
       '("Align Current Line" . vlog-align-line))
     (define-key vlog-mode-menu-map [sep-indent] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [block-indent]
+      '("Indent This Block" . vlog-indent-this-block))
     (define-key vlog-mode-menu-map [block-match]
       '("Goto Block Match" . vlog-goto-block-match))
     (define-key vlog-mode-menu-map [block-end]
       '("Goto Block End" . vlog-goto-block-end))
     (define-key vlog-mode-menu-map [block-beg]
       '("Goto Block Beg" . vlog-goto-block-beg))
-    (define-key vlog-mode-menu-map [sep-goto] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [sep-block] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [show-signal-width]
       '("Show Width of Current Signal" . vlog-show-this-signal-width-echo))
     (define-key vlog-mode-menu-map [hungry-delete]
@@ -934,8 +937,7 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ..."
         (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
       (if (string-match vlog-indent-block-end-words-re word)
           (progn (push-mark) (vlog-indent-goto-block-beg (point-min) word))
-        (message "`%s' is not a beg or end of a block.")))))
-
+        (message "`%s' is not a beg or end of a block." word)))))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-mode)
