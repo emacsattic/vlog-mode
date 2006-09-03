@@ -802,7 +802,7 @@ function."
   "Indent the current block if we're looking at a block beg/end, works with:
 begin/end, fork/join, case/endcase, <block>/end<block>, ..."
   (interactive)
-  (let ((word (vlog-lib-get-current-word))
+  (let ((word (vlog-lib-word-atpt nil nil 'beg))
         (work t)
         beg end pt)
     (save-excursion
