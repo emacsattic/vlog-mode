@@ -389,9 +389,9 @@ Return the paramter alist: '((name .  value) (name . value) ...)"
         (match-string-no-properties 1)
       nil)))
 
-(defun vlog-lib-get-current-word (&optional return-nil)
-  "Return the current word I'm looking at.
-If RETURN-NIL is t, then return nil if none."
+(defun vlog-lib-word-atpt (&optional return-nil)
+  "Return the word at current point.  If RETURN-NIL is t, then
+return nil if none."
   (let* ((fword (if (looking-at "\\sw+\\>")
                     (match-string-no-properties 0)
                   ""))
