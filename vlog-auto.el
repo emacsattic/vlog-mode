@@ -29,21 +29,36 @@
 (require 'cl)
 (require 'vlog-lib)
 
-(defcustom vlog-auto-sense-abandon-old-list nil
-  "If t, use the new calculated sensitive list instead of the old
-one. If nil, only add new signals if any, do no removal."
+(defcustom vlog-auto-sense-abandon-old-list t
+  "If non-nil, use the new calculated sensitive list instead of
+the old one. If nil, only add new signals if any, do no removal."
   :type  'toggle
   :group 'vlog-mode)
 
-(defcustom vlog-auto-sense-refill-old-list nil
-  "If nil, leave the original sensitive list untouched while
-adding new signals into sensitive list; If t, refill the original
-sensitive list while adding new signals into it."
+(defcustom vlog-auto-sense-refill-old-list t
+  "If non-nil, refill the original sensitive list while adding
+new signals into it.  If nil, leave the original sensitive list
+untouched while adding new signals into sensitive list; "
+  :type  'toggle
+  :group 'vlog-mode)
+
+(defcustom vlog-auto-sense-ignore-error t
+  "If non-nil, ignore the parsing error and use partial result to
+update sensitive list.  If nil, any error during the parsing
+process will stop auto sense."
+  :type  'toggle
+  :group 'vlog-mode)
+
+(defcustom vlog-auto-sense-use-comma t
+  "Verilog 2000 allows using comma to seperate signals in
+sensitive lists, set this to non-nil to use this feature.  Note
+that it works only when Verilog 2000 support has been turned on."
   :type  'toggle
   :group 'vlog-mode)
 
 (defvar vlog-auto-rvalue-list nil
   "DO NOT touch me.")
+(make-variable-buffer-local 'vlog-auto-rvalue-list)
 
 (defun vlog-auto-sense ()
   "Make sensitive lists for all automated always blocks."
@@ -74,7 +89,10 @@ sensitive list while adding new signals into it."
   "Make the sensitive list for current always block."
   ;; we're now looking at the end of `// auto sense //'
   (vlog-skip-blank-and-useless-forward)
-  (let (beg end old-list new-list col pret)
+  (let ((sep (if (and vlog-mode-v2k-enabled
+                      vlog-auto-sense-use-comma)
+                 "," " or"))
+        beg end old-list new-list col sigs)
     ;; get current sensitive list, store it in `old-list'
     (when (and (looking-at "always")
                (setq beg (vlog-re-search-forward "(" (point-max) t))
@@ -87,34 +105,38 @@ sensitive list while adding new signals into it."
       ;; step over parens after `always', parse our new list
       (save-excursion
         (goto-char end)
-        (setq pret (vlog-auto-get-always-block-signals)))
-      ;; get the sensitive list
-      (if (memq (car pret) '(err eob))
-          (vlog-auto-output-parser-err (cdr pret))
-        (setq new-list nil)
-        (let ((paral (vlog-lib-get-module-parameters)))
-          (dolist (sig vlog-auto-rvalue-list)
-            (unless (or (assoc sig paral)
-                        (if vlog-auto-sense-abandon-old-list nil
-                          (vlog-lib-str-memq sig old-list)))
-              (push sig new-list))))
-        (goto-char (1- end))
-        (if old-list
-            (progn
-              ;; fill/refill the new/old list
-              (when (or vlog-auto-sense-abandon-old-list
-                        vlog-auto-sense-refill-old-list)
-                (kill-region beg (1- end))
-                (vlog-auto-sense-fill-sensitive-list
-                 (if vlog-auto-sense-abandon-old-list new-list old-list)))
-              ;; append new-list if `vlog-auto-sense-abandon-old-list' is nil
-              (when (and (not vlog-auto-sense-abandon-old-list) new-list)
-                (insert " or\n")
-                (indent-to-column col)
-                (insert "// ***** Added by vlog-auto ***** //\n")
-                (indent-to-column col)
-                (vlog-auto-sense-fill-sensitive-list new-list)))
-          (vlog-auto-sense-fill-sensitive-list new-list))))))
+        ;; get the sensitive list
+        (setq sigs (vlog-auto-get-always-block-signals)))
+      ;; report error
+      (and (memq (car sigs) '(err eob))
+           (vlog-auto-output-parser-err (cdr sigs)))
+      ;; generate new list
+      (setq new-list nil)
+      ;; remove parameters
+      (let ((params (vlog-lib-get-module-parameters)))
+        (dolist (sig vlog-auto-rvalue-list)
+          (unless (or (assoc sig params)
+                      (if vlog-auto-sense-abandon-old-list nil
+                        (vlog-lib-str-memq sig old-list)))
+            (push sig new-list))))
+      ;; insert sensitive list
+      (goto-char (1- end))
+      (if old-list
+          (progn
+            ;; fill/refill the new/old list
+            (when (or vlog-auto-sense-abandon-old-list
+                      vlog-auto-sense-refill-old-list)
+              (kill-region beg (1- end))
+              (vlog-auto-sense-fill-sensitive-list
+               (if vlog-auto-sense-abandon-old-list new-list old-list)))
+            ;; append new-list if `vlog-auto-sense-abandon-old-list' is nil
+            (when (and (not vlog-auto-sense-abandon-old-list) new-list)
+              (insert sep "\n")
+              (indent-to-column col)
+              (insert "// ***** Added by vlog-auto ***** //\n")
+              (indent-to-column col)
+              (vlog-auto-sense-fill-sensitive-list new-list)))
+        (vlog-auto-sense-fill-sensitive-list new-list)))))
 
 (defun vlog-auto-sense-fill-sensitive-list (flist &optional fcolumn)
   "Fill the sensitive list FLIST, using fill-column FCOLUMN."
@@ -122,6 +144,9 @@ sensitive list while adding new signals into it."
         (col  (if (numberp fcolumn) fcolumn fill-column))
         (idx  1)
         (len  (length flist))
+        (sep (if (and vlog-mode-v2k-enabled
+                      vlog-auto-sense-use-comma)
+                 "," " or"))
         firstp lastp)
     (when flist
       (dolist (sig flist)
@@ -131,7 +156,7 @@ sensitive list while adding new signals into it."
           (insert "\n")
           (indent-to-column icol))
         (insert (concat (if (or firstp (looking-back "^\\s-*")) "" " ")
-                        sig (if lastp "" " or")))
+                        sig (if lastp "" sep)))
         (setq idx (1+ idx))))))
 
 (defun vlog-auto-get-always-block-signals ()
@@ -258,12 +283,13 @@ after parsing in a list '(RESULT STATE POSITION)."
             (setq inplace t)))
          (t (throw 'done 'err))))
       (throw 'done t)))
-    (when (memq result (list 'err 'eob))
-      (setq vlog-auto-rvalue-list nil))
-    (cond
-     ((eq (car stack) 'pend)
-      (setq state (cadr stack)))
-     (t (setq state (car stack))))
+    ;; erase result on errors, if `vlog-auto-sense-ignore-error' is nil.
+    (and (memq result (list 'err 'eob))
+         (not vlog-auto-sense-ignore-error)
+         (setq vlog-auto-rvalue-list nil))
+    ;; update state
+    (setq state (if (eq (car stack) 'pend) (cadr stack) (car stack)))
+    ;; return result
     (list result state (point))))
 
 (defun vlog-auto-output-parser-err (errlst)
