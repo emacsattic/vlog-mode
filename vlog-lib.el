@@ -389,20 +389,33 @@ Return the paramter alist: '((name .  value) (name . value) ...)"
         (match-string-no-properties 1)
       nil)))
 
-(defun vlog-lib-word-atpt (&optional return-nil)
-  "Return the word at current point.  If RETURN-NIL is t, then
-return nil if none."
-  (let* ((fword (if (looking-at "\\sw+\\>")
-                    (match-string-no-properties 0)
+(defun vlog-lib-word-atpt (&optional return-nil return-bound move)
+  "Return the word at current point.
+If RETURN-NIL is t, then return nil if none.
+If RETURN-BOUND is t, return a CONS (WORD . (BEG . END)).
+If MOVE is 'beg/'end, move the cursor to beg/end on success;
+Otherwise do not move the cursor."
+  (let* ((beg (point))
+         (end (point))
+         (fword (if (looking-at "\\sw+\\>")
+                    (progn (setq end (match-end 0))
+                           (match-string-no-properties 0))
                   ""))
          (bword (if (looking-back "\\<\\sw+")
-                    (match-string-no-properties 0)
+                    (progn (setq beg (match-beginning 0))
+                           (match-string-no-properties 0))
                   ""))
          (word (concat bword fword)))
+    (if (and (eq move 'beg))
+        (goto-char beg)
+      (if (and (eq move 'end))
+          (goto-char end)))
     (when (and return-nil
                (string= word ""))
       (setq word nil))
-    word))
+    (if return-bound
+        (cons word (cons beg end))
+      word)))
 
 (provide 'vlog-lib)
 
