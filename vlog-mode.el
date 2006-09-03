@@ -515,6 +515,8 @@ If nil, use generic system task keywords regexp."
       '("Goto Block End" . vlog-goto-block-end))
     (define-key vlog-mode-menu-map [block-beg]
       '("Goto Block Beg" . vlog-goto-block-beg))
+    (define-key vlog-mode-menu-map [match-if]
+      '("Goto Matcing if" . vlog-goto-block-match))
     (define-key vlog-mode-menu-map [sep-block] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [show-signal-width]
       '("Show Width of Current Signal" . vlog-show-this-signal-width-echo))
@@ -936,13 +938,24 @@ If the cursor is not on `end', then search the nearest `begin'."
 begin/end, fork/join, case/endcase, <block>/end<block>, ..."
   (interactive)
   (let ((word (vlog-lib-word-atpt nil nil 'beg)))
-    (if (string-match vlog-indent-block-beg-words-re word)
-        (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
-      (if (string-match vlog-indent-block-end-words-re word)
-          (progn (push-mark) (vlog-indent-goto-block-beg (point-min) word))
-        (if (string= "" word)
-            (message "We're not on the beg/end of a block")
-          (message "`%s' is not a beg or end of a block." word))))))
+    (catch 'done
+      (cond ((string-match vlog-indent-block-beg-words-re word)
+             (push-mark)
+             (vlog-indent-goto-block-end (point-max) word)
+             (throw 'done t))
+            ((string-match vlog-indent-block-end-words-re word)
+             (push-mark)
+             (vlog-indent-goto-block-beg (point-min) word)
+             (throw 'done t))
+            ((string= "else" word)
+             (push-mark)
+             (vlog-indent-goto-match-if (point-min))
+             (throw 'done t))
+            (t
+             (if (string= "" word)
+                 (message "We're not on the beg/end of a block")
+               (message "`%s' is not a beg or end of a block." word))
+             (throw 'done nil))))))
 
 (defun vlog-select-block-or-sexp ()
   "Select a block if cursor is on a block beg/end, works with:
