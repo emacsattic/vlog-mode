@@ -940,7 +940,9 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ..."
         (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
       (if (string-match vlog-indent-block-end-words-re word)
           (progn (push-mark) (vlog-indent-goto-block-beg (point-min) word))
-        (message "`%s' is not a beg or end of a block." word)))))
+        (if (string= "" word)
+            (message "We're not on the beg/end of a block")
+          (message "`%s' is not a beg or end of a block." word))))))
 
 (defun vlog-select-block-or-sexp ()
   "Select a block if cursor is on a block beg/end, works with:
