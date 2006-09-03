@@ -654,14 +654,14 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
 
 (defun vlog-indent-goto-block-beg (limit &optional end-word)
   "Goto the beginning of a block.  Make sure you're looking at
-the end of a block when you call this function."
+the `end-word' of a block when you call this function."
   (let ((level 1)
         ;; look for an ender if parameter END-WORD is not given
         (ender (if (stringp end-word)
                    end-word
                  (save-excursion
-                   (re-search-forward "\\(\\sw+\\)" (line-end-position) t)
-                   (match-string-no-properties 1))))
+                   (looking-at "\\<\\sw+\\>")
+                   (match-string-no-properties 0))))
         type beger stone)
     (if (and (stringp ender)
              (string-match
@@ -700,7 +700,7 @@ the end of a block when you call this function."
 
 (defun vlog-indent-goto-block-end (limit &optional beg-word)
   "Goto the end of a block.  Make sure you're looking at the
-beginning of a block when you call this function."
+`beg-word' of a block when you call this function."
   (let ((level 1)
         ;; look for an ender if parameter END-WORD is not given
         (beger (if (stringp beg-word)
