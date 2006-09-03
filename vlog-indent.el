@@ -625,6 +625,13 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
                   (setq type 'beh
                         icol (vlog-indent-level-at-pos))
                   (throw 'done t))
+                 ;; module/endmodule ...
+                 ((looking-at vlog-indent-defun-words-re)
+                  (setq icol (vlog-indent-level-at-pos))
+                  (if (looking-at "end")
+                      (setq type 'defun-end)
+                    (setq type 'defun))
+                  (throw 'done t))
                  ;; begin/fork/function/task ...
                  ((looking-at vlog-indent-block-beg-words-re)
                   (if (looking-at "case[xz]?")
@@ -633,20 +640,13 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
                   (setq icol (vlog-indent-level-at-pos))
                   (throw 'done t))
                  ;; end/join/endfunction/endtask ...
-                 ((looking-at "\\(end.*\\)\\|\\(join\\)")
+                 ((looking-at vlog-indent-block-end-words-re)
                   (setq token (match-string-no-properties 0))
                   (if (vlog-indent-goto-block-beg limit token)
                       (unless (or (string= token "end") (string= token "join"))
                         (setq search-back nil))
                     (setq type 'none)
-                    (throw 'done nil)))
-                 ;; module/endmodule ...
-                 ((looking-at vlog-indent-defun-words-re)
-                  (setq icol (vlog-indent-level-at-pos))
-                  (if (looking-at "end")
-                      (setq type 'defun-end)
-                    (setq type 'defun))
-                  (throw 'done t)))
+                    (throw 'done nil))))
               (setq type 'none
                     icol 0)
               (throw 'done t)))))))
