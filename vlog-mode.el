@@ -454,6 +454,7 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map "\C-ci"
       (lambda () (interactive) (vlog-indent-line t)))
     (define-key vlog-mode-map "\C-c\C-i" 'vlog-indent-this-block)
+    (define-key vlog-mode-map (kbd "<C-M-SPC>") 'vlog-select-block-or-sexp)
     (define-key vlog-mode-map "\C-c\C-a" 'vlog-auto-sense)
     (define-key vlog-mode-map "\C-c\C-u" 'vlog-auto-sense-update-this-block)
     (define-key vlog-mode-map "\C-c\C-d" 'vlog-signal-trace-driver)
@@ -499,11 +500,13 @@ If nil, use generic system task keywords regexp."
       '("Comment/Uncomment Region" . comment-dwim))
     (define-key vlog-mode-menu-map [indent-region]
       '("Indent Region" . indent-region))
-    (define-key vlog-mode-menu-map [indent-line]
-      '("Indent Current Line" . indent-for-tab-command))
     (define-key vlog-mode-menu-map [align-line]
       '("Align Current Line" . vlog-align-line))
+    (define-key vlog-mode-menu-map [indent-line]
+      '("Indent Current Line" . indent-for-tab-command))
     (define-key vlog-mode-menu-map [sep-indent] '("--")) ;; ------------------
+    (define-key vlog-mode-menu-map [block-mark]
+      '("Select This Block" . vlog-select-block-or-sexp))
     (define-key vlog-mode-menu-map [block-indent]
       '("Indent This Block" . vlog-indent-this-block))
     (define-key vlog-mode-menu-map [block-match]
@@ -909,7 +912,7 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ...
 If the cursor is standing on `begin', then go to the matching `end'.
 If the cursor is not on `begin', then search the nearest `end'."
   (interactive)
-  (let ((word (vlog-lib-word-atpt)))
+  (let ((word (vlog-lib-word-atpt nil nil 'beg)))
     (push-mark)
     (if (string-match vlog-indent-block-end-words-re word)
         (vlog-indent-goto-block-beg (point-min) word)
@@ -922,7 +925,7 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ...
 If the cursor is standing on `end', then go to the matching `begin'.
 If the cursor is not on `end', then search the nearest `begin'."
   (interactive)
-  (let ((word (vlog-lib-word-atpt)))
+  (let ((word (vlog-lib-word-atpt nil nil 'beg)))
     (push-mark)
     (if (string-match vlog-indent-block-beg-words-re word)
         (vlog-indent-goto-block-end (point-max) word)
@@ -932,12 +935,45 @@ If the cursor is not on `end', then search the nearest `begin'."
   "Go to matching beginning or the end of the block, works with:
 begin/end, fork/join, case/endcase, <block>/end<block>, ..."
   (interactive)
-  (let ((word (vlog-lib-word-atpt)))
+  (let ((word (vlog-lib-word-atpt nil nil 'beg)))
     (if (string-match vlog-indent-block-beg-words-re word)
         (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
       (if (string-match vlog-indent-block-end-words-re word)
           (progn (push-mark) (vlog-indent-goto-block-beg (point-min) word))
         (message "`%s' is not a beg or end of a block." word)))))
+
+(defun vlog-select-block-or-sexp ()
+  "Select a block if cursor is on a block beg/end, works with:
+begin/end, fork/join, case/endcase, <block>/end<block>, ...
+Otherwise, run command `mark-sexp'."
+  (interactive)
+  (let* ((info (vlog-lib-word-atpt t t))
+         (word (car  info))
+         (beg  (cadr info))
+         (end  (cddr info)))
+    (if (not (stringp word))
+        (progn (mark-sexp)
+               (message "Not at block beg/end, call `mark-sexp' instead."))
+      (if (string-match vlog-indent-block-beg-words-re word)
+          (progn
+            (goto-char beg)
+            (push-mark
+             (save-excursion
+               (vlog-indent-goto-block-end (point-max) word)
+               (point))
+             nil t))
+        (if (string-match vlog-indent-block-end-words-re word)
+            (progn
+              (goto-char end)
+              (push-mark
+               (save-excursion
+                 (goto-char beg) ;; goto beg first
+                 (vlog-indent-goto-block-beg (point-min) word)
+                 (point))
+               nil t))
+          (mark-sexp)
+          (message "Not at block beg/end, call `mark-sexp' instead."))))))
+
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-mode)
