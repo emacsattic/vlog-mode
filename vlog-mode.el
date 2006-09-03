@@ -909,7 +909,7 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ...
 If the cursor is standing on `begin', then go to the matching `end'.
 If the cursor is not on `begin', then search the nearest `end'."
   (interactive)
-  (let ((word (vlog-lib-get-current-word)))
+  (let ((word (vlog-lib-word-atpt)))
     (push-mark)
     (if (string-match vlog-indent-block-end-words-re word)
         (vlog-indent-goto-block-beg (point-min) word)
@@ -922,7 +922,7 @@ begin/end, fork/join, case/endcase, <block>/end<block>, ...
 If the cursor is standing on `end', then go to the matching `begin'.
 If the cursor is not on `end', then search the nearest `begin'."
   (interactive)
-  (let ((word (vlog-lib-get-current-word)))
+  (let ((word (vlog-lib-word-atpt)))
     (push-mark)
     (if (string-match vlog-indent-block-beg-words-re word)
         (vlog-indent-goto-block-end (point-max) word)
@@ -932,7 +932,7 @@ If the cursor is not on `end', then search the nearest `begin'."
   "Go to matching beginning or the end of the block, works with:
 begin/end, fork/join, case/endcase, <block>/end<block>, ..."
   (interactive)
-  (let ((word (vlog-lib-get-current-word)))
+  (let ((word (vlog-lib-word-atpt)))
     (if (string-match vlog-indent-block-beg-words-re word)
         (progn (push-mark) (vlog-indent-goto-block-end (point-max) word))
       (if (string-match vlog-indent-block-end-words-re word)
