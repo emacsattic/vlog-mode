@@ -208,31 +208,30 @@ is concerned within an always block."
   "Regexp for signal declaration.")
 
 ;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
-(defvar vlog-signal-decl-2-re "\\[.+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
+(defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
   "Regexp for signal declaration.")
 
 (defun vlog-imenu-create-index-function ()
   "Imenu support function for verilog.   This function is set as the value of
 `imenu-create-index-function'."
   (save-excursion
-  (beginning-of-buffer)
-  (let (entries bound)
-    (while (vlog-re-search-forward vlog-signal-decl-re (point-max) t)
-      (setq bound (line-end-position))
-      (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
-        (if (vlog-in-parens-p)
-            ;; within module port list
-            (when (looking-at "\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)")
-              (add-to-list
-               'entries
-               (cons (match-string-no-properties 1) (point-marker))))
-          ;; not within module port list
+    (beginning-of-buffer)
+    (let (entries bound)
+      (while (vlog-re-search-forward vlog-signal-decl-re (point-max) t)
+        (setq bound (line-end-position))
+        (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
+        (catch 'done
           (while (vlog-re-search-forward
-                  "\\s-*,?\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)" bound t)
+                  "\\(=\\)\\|\\(\\s-*,?\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)\\)"
+                  bound t)
+            (when (match-end 1)
+              ;; `=' found, stop
+              (end-of-line)
+              (throw 'done 'assign))
             (add-to-list
              'entries
-             (cons (match-string-no-properties 1) (point-marker))))))
-    entries)))
+             (cons (match-string-no-properties 3) (point-marker))))))
+      entries)))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-signal)
