@@ -516,7 +516,7 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-menu-map [block-beg]
       '("Goto Block Beg" . vlog-goto-block-beg))
     (define-key vlog-mode-menu-map [match-if]
-      '("Goto Matcing if" . vlog-goto-block-match))
+      '("Goto Matching if" . vlog-goto-block-match))
     (define-key vlog-mode-menu-map [sep-block] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [show-signal-width]
       '("Show Width of Current Signal" . vlog-show-this-signal-width-echo))
