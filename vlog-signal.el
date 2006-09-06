@@ -36,6 +36,18 @@
 (defvar vlog-signal-trace-signame nil
   "DO NOT touch me.")
 (make-variable-buffer-local 'vlog-signal-trace-signame)
+
+;; (regexp-opt '("input" "output" "inout" "reg" "wire") t)
+(defvar vlog-signal-decl-re "\\<\\(\\(?:in\\|out\\)put\\|reg\\|wire\\|inout\\)\\>"
+  "Regexp for signal declaration.")
+
+;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
+(defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
+  "Regexp for signal declaration.")
+
+(defvar vlog-process-siglist-function 'vlog-siglist-processor-default
+  "Default signal list processor function.")
+
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()
   "Show signal width in echo area."
@@ -203,22 +215,15 @@ is concerned within an always block."
     (message "No more signal driver for signal %s." vlog-signal-trace-signame)))
 
 ;;+ imenu support ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-;; (regexp-opt '("input" "output" "inout" "reg" "wire") t)
-(defvar vlog-signal-decl-re "\\<\\(\\(?:in\\|out\\)put\\|reg\\|wire\\|inout\\)\\>"
-  "Regexp for signal declaration.")
-
-;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
-(defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
-  "Regexp for signal declaration.")
-
 (defun vlog-imenu-create-index-function ()
   "Imenu support function for verilog.   This function is set as the value of
 `imenu-create-index-function'."
   (save-excursion
     (beginning-of-buffer)
-    (let (entries bound)
+    (let (entries bound type)
       (while (vlog-re-search-forward vlog-signal-decl-re (point-max) t)
-        (setq bound (line-end-position))
+        (setq bound (line-end-position)
+              type  (match-string-no-properties 0))
         (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
         (catch 'done
           (while (vlog-re-search-forward
@@ -228,10 +233,59 @@ is concerned within an always block."
               ;; `=' found, stop
               (end-of-line)
               (throw 'done 'assign))
-            (add-to-list
-             'entries
-             (cons (match-string-no-properties 3) (point-marker))))))
-      entries)))
+            (setq entries
+               (append entries (list
+                 (cons type (cons (match-string-no-properties 3)
+                                  (point-marker)))))))))
+      (funcall vlog-process-siglist-function entries))))
+
+(defun vlog-siglist-processor-default (lst)
+  "Element in LST is in the form of (type signal . marker).  This
+function should return a list that contains elements in the form
+of (signal . marker)."
+  (let (sig mkr siglist result)
+    (dolist (elt lst)
+      (setq sig   (cadr elt)
+            entry (cdr  elt))
+      ;; Remove duplicates.  `member' uses `equal', which works for strings.
+      (unless (member sig siglist)
+        (setq siglist (cons sig siglist))
+        (setq result (cons entry result))))
+    result))
+
+(defun vlog-siglist-processor-iorw (lst)
+  "Element in LST is in the form of (type signal . marker).  This
+function should return a list that contains elements in the form
+of (signal . marker)."
+  (let (type sig mkr siglist inputs outputs inouts regs wires others)
+    (dolist (elt lst)
+      (setq type  (car  elt)
+            sig   (cadr elt)
+            entry (cdr  elt))
+      ;; Remove duplicates.  `member' uses `equal', which works for strings.
+      (unless (member sig siglist)
+        (setq siglist (cons sig siglist))
+        (cond
+         ((string= type "input")
+          (setq inputs (cons entry inputs)))
+         ((string= type "output")
+          (setq output (cons entry outputs)))
+         ((string= type "inout")
+          (setq inouts (cons entry inouts)))
+         ((string= type "reg")
+          (setq regs (cons entry regs)))
+         ((string= type "wire")
+          (setq wires (cons entry wires)))
+         (t
+          (setq others (cons entry others))))))
+    (append
+     (and inputs  (list (cons "Inputs" inputs)))
+     (and outputs (list (cons "Output" outputs)))
+     (and inouts  (list (cons "Inout"  inouts)))
+     (and regs    (list (cons "Regs"   regs)))
+     (and wires   (list (cons "Wires"  wires)))
+     others)))
+
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-signal)
