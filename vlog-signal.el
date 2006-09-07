@@ -218,10 +218,33 @@ is concerned within an always block."
 (defun vlog-imenu-create-index-function ()
   "Imenu support function for verilog.   This function is set as the value of
 `imenu-create-index-function'."
+  (let* ((mods (vlog-lib-get-modules))
+         (num  (length mods))
+         mod beg end ret)
+    (cond
+     ;; no module found
+     ((eq num 0)
+      (vlog-imenu-create-index-internal (point-min) (point-max)))
+     ;; only one module
+     ((eq num 1)
+      (vlog-imenu-create-index-internal (cadr (car mods)) (cddr (car mods))))
+     ;; multiple modules
+     (t
+      (dolist (mod mods)
+        (setq name (car  mod)
+              beg  (cadr mod)
+              end  (cddr mod)
+              ret  (append ret
+                           (list (cons name (vlog-imenu-create-index-internal
+                                             beg end))))))
+      ret))))
+
+(defun vlog-imenu-create-index-internal (beg end)
+  "Return imenu indexes between BEG and END."
   (save-excursion
-    (beginning-of-buffer)
+    (goto-char beg)
     (let (entries bound type)
-      (while (vlog-re-search-forward vlog-signal-decl-re (point-max) t)
+      (while (vlog-re-search-forward vlog-signal-decl-re end t)
         (setq bound (line-end-position)
               type  (match-string-no-properties 0))
         (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
@@ -234,9 +257,9 @@ is concerned within an always block."
               (end-of-line)
               (throw 'done 'assign))
             (setq entries
-               (append entries
-                  (list (cons type (cons (match-string-no-properties 3)
-                                         (point-marker)))))))))
+                  (append entries
+                          (list (cons type (cons (match-string-no-properties 3)
+                                                 (point-marker)))))))))
       (funcall vlog-process-siglist-function entries))))
 
 (defun vlog-siglist-processor-default (lst)
