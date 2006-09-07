@@ -339,10 +339,11 @@ If COL is inside tabs, return 'itab."
         (throw 'done t)))
     (throw 'done nil)))
 
-(defun vlog-lib-get-module-parameters (&optional range)
+(defun vlog-lib-get-module-parameters (&optional range marker)
   "Get current module's parameters.  If RANGE is given in the
 form of (BEG . END), uese them as search bounds.  Return the
-paramter alist: '((name .  value) (name . value) ...)."
+paramter alist: '((name .  value) (name . value) ...).  If
+MARKER is non-nil, return (name . marker) list."
   (save-excursion
     (let ((beg (point-min))
           (end (point-max))
@@ -361,14 +362,18 @@ paramter alist: '((name .  value) (name . value) ...)."
         (if (vlog-re-search-forward "\\<endmodule\\>" (point-max) t)
             (setq end (match-beginning 0))))
       ;; Search the range for parameter definitions
-      (vlog-lib-get-parameters-internal beg end))))
+      (vlog-lib-get-parameters-internal beg end marker))))
 
-(defun vlog-lib-get-parameters-internal (beg end)
-  "Get parameter definitions within the range from BEG to END."
-  (let (ret)
+(defun vlog-lib-get-parameters-internal (beg end marker)
+  "Get parameter definitions within the range from BEG to END.
+If MARKER is non-nil, return (name . marker) instead of (name . value)."
+  (let ((param-re
+         (if vlog-mode-v2k-enabled
+             "\\<\\(\\(localparam\\)\\|parameter\\)[ \t\n]*\\(\\[[^]]+\\]\\)*"
+           "\\<parameter[ \t\n]*\\(\\[[^]]+\\]\\)*"))
+        ret)
     (goto-char beg)
-    (while (vlog-re-search-forward
-            "parameter[ \t\n]*\\(\\[[^]]+\\]\\)*" end t)
+    (while (vlog-re-search-forward param-re end t)
       (setq begt (match-end 0))
       (when (setq endt (vlog-re-search-forward ";" end t))
         (goto-char begt)
@@ -377,7 +382,9 @@ paramter alist: '((name .  value) (name . value) ...)."
           (setq ret
                 (append ret (list (cons
                                    (match-string-no-properties 1)
-                                   (match-string-no-properties 3))))))))
+                                   (if marker
+                                       (point-marker)
+                                     (match-string-no-properties 3)))))))))
     ret))
 
 (defun vlog-lib-get-module-para-val (pname)
