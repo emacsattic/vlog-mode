@@ -45,7 +45,7 @@
 (defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
   "Regexp for signal declaration.")
 
-(defvar vlog-process-siglist-function 'vlog-siglist-processor-default
+(defvar vlog-process-siglist-function 'vlog-siglist-processor-iorw
   "Default signal list processor function.")
 
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -269,7 +269,7 @@ of (signal . marker)."
          ((string= type "input")
           (setq inputs (cons entry inputs)))
          ((string= type "output")
-          (setq output (cons entry outputs)))
+          (setq outputs (cons entry outputs)))
          ((string= type "inout")
           (setq inouts (cons entry inouts)))
          ((string= type "reg")
@@ -280,8 +280,8 @@ of (signal . marker)."
           (setq others (cons entry others))))))
     (append
      (and inputs  (list (cons "Inputs" inputs)))
-     (and outputs (list (cons "Output" outputs)))
-     (and inouts  (list (cons "Inout"  inouts)))
+     (and outputs (list (cons "Outputs" outputs)))
+     (and inouts  (list (cons "Inouts"  inouts)))
      (and regs    (list (cons "Regs"   regs)))
      (and wires   (list (cons "Wires"  wires)))
      others)))
