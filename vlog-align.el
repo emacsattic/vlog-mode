@@ -29,14 +29,18 @@
 (require 'cl)
 (require 'vlog-lib)
 
+(defgroup vlog-align nil
+  "Customizations for code alignment."
+  :group 'verilog)
+
 (defcustom vlog-align-do-align-with-indent t
   "If t, do align with indent."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  'boolean)
 
 (defcustom vlog-align-normal-comment-column 48
   "Comment column for `vlog-align-do-inparen-normal'."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  'integer)
 
 (defcustom vlog-align-mod-inst-stop-list
@@ -48,7 +52,7 @@ m_ff_ce #(1,1'b0) u_ff_my (
                 16              32
     .i_reset_b  (my_reste_b),   // comments...
 Then you can set me to '(16 32)."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  '(repeat integer))
 
 (defcustom vlog-align-declaration-stop-list
@@ -60,17 +64,17 @@ wire      [31:0]  my_wire     =   my_reg;       // comments...
 parameter [31:0]  my_param    =   para_value;   // comments...
           10      18          30  34            48
 Then you can set me to '(10 18 30 34 48)."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  '(repeat integer))
 
 (defcustom vlog-align-do-align-for-port-list t
   "If t, do align with for port list."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  'boolean)
 
 (defcustom vlog-align-do-align-for-assign t
   "If t, do align with for assign statement."
-  :group 'vlog-mode
+  :group 'vlog-align
   :type  'boolean)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;

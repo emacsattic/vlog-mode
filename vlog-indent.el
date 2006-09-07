@@ -31,71 +31,71 @@
 (require 'vlog-align)
 
 ;;+ variables, constants and customs ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defgroup vlog-mode-indent nil
+(defgroup vlog-indent nil
   "Indentation settings of vlog-mode."
-  :group 'vlog-mode)
+  :group 'verilog)
 
 (defcustom vlog-indent-align-port-list-to-paren nil
   "If t, indent ports inside parens."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'boolean)
 
 (defcustom vlog-indent-align-else-to-if nil
   "If true, align `else' under matching `if'.  Otherwise else is
 lined up with first character on line holding matching if."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'boolean)
 
 (defcustom vlog-indent-level-beh 2
   "Indentation level for continued line after always @ (...)."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-block 0
   "Indentation level for blocks."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-block-beh 0
   "Indentation level for blocks after beh."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-block-inside 2
   "Indentation level for lines indise blocks."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-case-inside 4
   "Indentation level for lines inside case block."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-case-branch-inside 2
   "Indentation level for branch indise \"case\"."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-cond 3
   "Indentation level for continued line after conditions."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-default 4
   "Default indentation level."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-indent-level-port-list 4
   "Indentation level for ports indise port list."
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'integer)
 
 (defcustom vlog-use-generic-directive t
   "Non-nil means `vlog-indent-directives-re' is set to generic.
 Nil means `vlog-indent-directives-re' is generated from
 `vlog-indent-directives'"
-  :group 'vlog-mode-indent
+  :group 'vlog-indent
   :type  'boolean)
 
 (defvar vlog-indent-directives

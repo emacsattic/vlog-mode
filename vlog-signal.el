@@ -29,6 +29,20 @@
 
 (require 'cl)
 
+(defgroup vlog-signal nil
+  "Customizations for signals and signal list."
+  :group 'verilog)
+
+(defcustom vlog-process-siglist-function 'vlog-siglist-processor-iorw
+  "Default signal list processor function."
+  :type 'function
+  :group 'vlog-signal)
+
+(defcustom vlog-siglist-show-parameters t
+  "Non-nil means parameters are shown in the signal list.  Nil means not."
+  :type 'boolean
+  :group 'vlog-signal)
+
 (defvar vlog-signal-trace-regexp nil
   "DO NOT touch me.")
 (make-variable-buffer-local 'vlog-signal-trace-regexp)
@@ -44,12 +58,6 @@
 ;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
 (defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
   "Regexp for signal declaration.")
-
-(defvar vlog-process-siglist-function 'vlog-siglist-processor-iorw
-  "Default signal list processor function.")
-
-(defvar vlog-siglist-show-parameters t
-  "Non-nil means parameters are shown in the signal list.  Nil means not.")
 
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()

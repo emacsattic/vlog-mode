@@ -37,13 +37,17 @@
 (require 'vlog-signal)
 
 ;;+ variables, constants and faces ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
-(defgroup vlog-mode nil
+(defgroup verilog nil
   "Customizations for vlog-mode."
   :group 'languages)
 
-(defgroup vlog-mode-faces nil
+(defgroup vlog-mode nil
+  "Customizations for vlog-mode."
+  :group 'verilog)
+
+(defgroup vlog-faces nil
   "vlog-mode faces settings."
-  :group 'vlog-mode)
+  :group 'verilog)
 
 (defvar vlog-mode-map nil
   "Keymap used in vlog-mode.")
@@ -58,12 +62,12 @@ You can add your own keymaps using this hook."
   :group   'vlog-mode)
 
 (defcustom vlog-mode-auto-end-block t
-  "If t, insert \"end\"/\"join\" after \"begin\"/\"fork\" automatically."
+  "If t, insert `end'/`join' after `begin'/`fork' automatically."
   :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-mode-auto-end-module t
-  "If t, insert \"endmodule\" after \"module\"/\"macromodule\" automatically."
+  "If t, insert `endmodule' after `module'/`macromodule' automatically."
   :type  'boolean
   :group 'vlog-mode)
 
@@ -249,7 +253,7 @@ If nil, use generic system task keywords regexp."
      (:foreground "red"))
     (t (:italis t)))
   "Font lock mode face used to highlight psl tag."
-  :group 'vlog-mode-faces)
+  :group 'vlog-faces)
 
 (defface vlog-mode-psl-content-face
   '((((class color)
@@ -260,46 +264,46 @@ If nil, use generic system task keywords regexp."
      (:foreground "pink3"))
     (t (:italis t)))
   "Font lock mode face used to highlight psl contents."
-  :group 'vlog-mode-faces)
+  :group 'vlog-faces)
 
 (defcustom vlog-mode-psl-tag-face 'vlog-mode-psl-tag-face
   "PSL tag face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-psl-content-face 'vlog-mode-psl-content-face
   "PSL content face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-type-face 'font-lock-type-face
   "Type face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-keyword-face 'font-lock-keyword-face
   "Keyword face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-systask-face 'font-lock-function-name-face
   "System task face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-struct-face 'font-lock-function-name-face
   "Structure face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-operator-face 'font-lock-variable-name-face
   "Operator face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-module-face 'font-lock-constant-face
   "Module, task, function and primitive face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-pragma-face
@@ -307,32 +311,32 @@ If nil, use generic system task keywords regexp."
       'font-lock-preprocessor-face
     'font-lock-constant-face)
   "Pragma face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-macro-face 'font-lock-constant-face
   "Macro face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-number-face 'font-lock-doc-face
   "Number face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-parameter-face 'font-lock-type-face
   "Parameter passing face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-doc-face 'font-lock-warning-face
   "Documentation face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 (defcustom vlog-mode-warning-face 'font-lock-warning-face
   "Warning face used in vlog-mode."
-  :group 'vlog-mode-faces
+  :group 'vlog-faces
   :type  'variable)
 
 ;; options -------------------------------------------------------------------
@@ -786,7 +790,7 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
     (vlog-indent-line)))
 
 (defun vlog-mode-electric-bitwidth (c)
-  "Convert \"3b\" to \"3'b\" automatically."
+  "Convert 3b to 3'b automatically."
   (and (looking-back "\\<[0-9]+")
        (insert "'"))
   (insert c))
@@ -837,9 +841,9 @@ automatically, with prefix `vlog-mode-endmodule-auto-name-prefix'."
   (vlog-mode-electric-bitwidth "S"))
 
 (defun vlog-mode-electric-space ()
-  "Expand \"reg 2\" into \"reg [1:0]\" automatically, works with
+  "Expand `reg 2' into `reg [1:0]' automatically, works with
 defined parameters.
-Also add \"endmodule\" after \"module\" (\"endcase\" after \"case\"),
+Also add `endmodule' after `module' (`endcase' after `case'),
 if `vlog-mode-auto-end-module' (`vlog-mode-auto-end-block') is t."
   (interactive)
   (cond

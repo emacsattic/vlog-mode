@@ -29,34 +29,34 @@
 (require 'cl)
 (require 'vlog-indent)
 
-(defgroup vlog-mode-skel nil
+(defgroup vlog-skel nil
   "Skeleton settings for vlog-mode."
-  :group 'vlog-mode)
+  :group 'verilog)
 
 (defcustom vlog-skel-always-at-string "always @"
   "Default always block beginning for `vlog-skel-smart-always'."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defcustom vlog-skel-default-clock "clk"
   "Default clock signal name for `vlog-skel-smart-always'."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defcustom vlog-skel-default-reset "if (~reset_b)"
   "Default reset signal name for `vlog-skel-smart-always'."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defcustom vlog-skel-user-name "vlog-mode user"
   "User name for vlog-mode."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defcustom vlog-skel-company-name "www.gnu.org"
   "Company name for vlog-mode."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defcustom vlog-skel-header-string "\
 //^File Header ------------------------------------------< Powered By Emacs>--
@@ -93,7 +93,7 @@ You can use special markups as shown below:
 %<align>       => Align current position. similar to `indent-relative'.
 %<_>           => Default cursor position after the insertion of header."
   :type  'string
-  :group 'vlog-mode-skel)
+  :group 'vlog-skel)
 
 (defvar vlog-skel-map nil
   "Keymap used in Vlog mode for smart skeletons.")

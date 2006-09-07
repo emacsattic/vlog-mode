@@ -28,6 +28,12 @@
 
 (require 'cl)
 
+(defcustom vlog-lib-auto-keyword-re
+  "^//\\s-+\\(auto \\(\\sw+\\)\\)\\s-+//\\s-*$"
+  "The automation keyword regexp."
+  :type 'string
+  :group 'vlog-auto)
+
 ;;+ constants & variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defconst verilog-keywords
  '("`define" "`else" "`endif" "`ifdef" "`include" "`timescale"
@@ -55,9 +61,6 @@ but for performance reason only a few of them are encounted by default.
 You can add more and then call `vlog-lib-make-regexp'.")
 (defvar vlog-decl-type-words-re nil
   "Regexp made of `vlog-decl-type-words'.")
-
-(defvar vlog-lib-auto-keyword-re
-  "^//\\s-+\\(auto \\(\\sw+\\)\\)\\s-+//\\s-*$")
 ;;- constants & variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ regexp related ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
