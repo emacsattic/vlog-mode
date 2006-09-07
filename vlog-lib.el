@@ -339,32 +339,46 @@ If COL is inside tabs, return 'itab."
         (throw 'done t)))
     (throw 'done nil)))
 
-(defun vlog-lib-get-module-parameters ()
-  "Get current module's parameters.
-Return the paramter alist: '((name .  value) (name . value) ...)"
+(defun vlog-lib-get-module-parameters (&optional range)
+  "Get current module's parameters.  If RANGE is given in the
+form of (BEG . END), uese them as search bounds.  Return the
+paramter alist: '((name .  value) (name . value) ...)."
   (save-excursion
     (let ((beg (point-min))
           (end (point-max))
-          (ret nil)
           begt endt)
-      (goto-char beg)
-      (when (vlog-re-search-forward
-             "\\<\\(macro\\)*module[ \t\n]+\\sw+" (point-max) t)
-        (setq beg (match-end 0))
-        (when (vlog-re-search-forward "\\<endmodule\\>" (point-max) t)
-          (setq end (match-beginning 0))))
-      (goto-char beg)
-      (while (vlog-re-search-forward
-              "parameter[ \t\n]*\\(\\[[^]]+\\]\\)*" end t)
-        (setq begt (match-end 0))
-        (when (setq endt (vlog-re-search-forward ";" end t))
-          (goto-char begt)
-          (while (vlog-re-search-forward
-                  "\\(\\sw+\\)[ \t\n]*\\(=[ \t\n]*\\(.+?\\)\\)[ \t\n]*[,;]" endt t)
-            (add-to-list 'ret (cons
-                               (match-string-no-properties 1)
-                               (match-string-no-properties 3)) t))))
-      ret)))
+      ;; Make use of RANGE parameter.
+      (if (and (consp range)
+               (numberp (car range))
+               (numberp (cdr range)))
+          ;; If range specified, use it
+          (setq beg (min (car range) (cdr range))
+                end (max (car range) (cdr range)))
+        ;; No range specified, search a possible one
+        (if (vlog-re-search-backward
+             "\\<\\(macro\\)*module[ \t\n]+\\sw+" (point-min) t)
+            (setq beg (match-end 0)))
+        (if (vlog-re-search-forward "\\<endmodule\\>" (point-max) t)
+            (setq end (match-beginning 0))))
+      ;; Search the range for parameter definitions
+      (vlog-lib-get-parameters-internal beg end))))
+
+(defun vlog-lib-get-parameters-internal (beg end)
+  "Get parameter definitions within the range from BEG to END."
+  (let (ret)
+    (goto-char beg)
+    (while (vlog-re-search-forward
+            "parameter[ \t\n]*\\(\\[[^]]+\\]\\)*" end t)
+      (setq begt (match-end 0))
+      (when (setq endt (vlog-re-search-forward ";" end t))
+        (goto-char begt)
+        (while (vlog-re-search-forward
+                "\\(\\sw+\\)[ \t\n]*\\(=[ \t\n]*\\(.+?\\)\\)[ \t\n]*[,;]" endt t)
+          (setq ret
+                (append ret (list (cons
+                                   (match-string-no-properties 1)
+                                   (match-string-no-properties 3))))))))
+    ret))
 
 (defun vlog-lib-get-module-para-val (pname)
   "Return parameter PNAME's value, if not defined, return nil."
