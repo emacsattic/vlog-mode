@@ -234,9 +234,9 @@ is concerned within an always block."
               (end-of-line)
               (throw 'done 'assign))
             (setq entries
-               (append entries (list
-                 (cons type (cons (match-string-no-properties 3)
-                                  (point-marker)))))))))
+               (append entries
+                  (list (cons type (cons (match-string-no-properties 3)
+                                         (point-marker)))))))))
       (funcall vlog-process-siglist-function entries))))
 
 (defun vlog-siglist-processor-default (lst)
@@ -250,7 +250,7 @@ of (signal . marker)."
       ;; Remove duplicates.  `member' uses `equal', which works for strings.
       (unless (member sig siglist)
         (setq siglist (cons sig siglist))
-        (setq result (cons entry result))))
+        (setq result (append result (list entry)))))
     result))
 
 (defun vlog-siglist-processor-iorw (lst)
@@ -267,17 +267,17 @@ of (signal . marker)."
         (setq siglist (cons sig siglist))
         (cond
          ((string= type "input")
-          (setq inputs (cons entry inputs)))
+          (setq inputs (append inputs (list entry))))
          ((string= type "output")
-          (setq outputs (cons entry outputs)))
+          (setq outputs (append outputs (list entry))))
          ((string= type "inout")
-          (setq inouts (cons entry inouts)))
+          (setq inouts (append inouts (list entry))))
          ((string= type "reg")
-          (setq regs (cons entry regs)))
+          (setq regs (append regs (list entry))))
          ((string= type "wire")
-          (setq wires (cons entry wires)))
+          (setq wires (append wires (list entry))))
          (t
-          (setq others (cons entry others))))))
+          (setq others (append others (list entry)))))))
     (append
      (and inputs  (list (cons "Inputs" inputs)))
      (and outputs (list (cons "Outputs" outputs)))
