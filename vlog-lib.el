@@ -403,6 +403,39 @@ paramter alist: '((name .  value) (name . value) ...)."
         (match-string-no-properties 1)
       nil)))
 
+(defun vlog-lib-get-modules ()
+  "Return all modules in the current buffer.  The return value is
+a list consits of cons cells (NAME BEG . END)."
+  (let ((bound (point-max))
+        (for-beg t) ;; record the state
+        is-end name mod beg end ret mbeg)
+    (save-excursion
+      (goto-char (point-min))
+      (catch 'done
+        (while (vlog-re-search-forward
+                "\\<\\(macro\\|\\(end\\)\\)*module\\>" bound t)
+          ;; record beg/end
+          (setq is-end (numberp (match-end 2))
+                end    (match-beginning 0)
+                beg    (match-end 0))
+          ;; find the module name if it's a beg
+          (unless is-end
+            (vlog-skip-blank-and-useless-forward bound)
+            (if (looking-at "\\sw+\\>")
+                (setq mod (match-string-no-properties 0))
+              (throw 'done 'mod-name-not-found)))
+          ;; no matter it's a beg or an end, a module ends here!
+          (unless for-beg
+            (setq ret (append ret
+                              (list (cons name (cons mbeg end))))
+                  for-beg is-end))
+          ;; if it's a beg, update info
+          (unless is-end
+            (setq for-beg nil
+                  name    mod
+                  mbeg    beg)))))
+    ret))
+
 (defun vlog-lib-word-atpt (&optional return-nil return-bound move)
   "Return the word at current point.
 If RETURN-NIL is t, then return nil if none.
