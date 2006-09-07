@@ -32,7 +32,7 @@
 (defcustom vlog-align-do-align-with-indent t
   "If t, do align with indent."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-align-normal-comment-column 48
   "Comment column for `vlog-align-do-inparen-normal'."
@@ -66,12 +66,12 @@ Then you can set me to '(10 18 30 34 48)."
 (defcustom vlog-align-do-align-for-port-list t
   "If t, do align with for port list."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-align-do-align-for-assign t
   "If t, do align with for assign statement."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 

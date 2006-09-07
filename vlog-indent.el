@@ -38,13 +38,13 @@
 (defcustom vlog-indent-align-port-list-to-paren nil
   "If t, indent ports inside parens."
   :group 'vlog-mode-indent
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-indent-align-else-to-if nil
   "If true, align `else' under matching `if'.  Otherwise else is
 lined up with first character on line holding matching if."
   :group 'vlog-mode-indent
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-indent-level-beh 2
   "Indentation level for continued line after always @ (...)."

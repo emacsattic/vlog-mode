@@ -38,7 +38,7 @@
 
 ;;+ variables, constants and faces ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defgroup vlog-mode nil
-  "vlog-mode Options."
+  "Customizations for vlog-mode."
   :group 'languages)
 
 (defgroup vlog-mode-faces nil
@@ -59,12 +59,12 @@ You can add your own keymaps using this hook."
 
 (defcustom vlog-mode-auto-end-block t
   "If t, insert \"end\"/\"join\" after \"begin\"/\"fork\" automatically."
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-mode-auto-end-module t
   "If t, insert \"endmodule\" after \"module\"/\"macromodule\" automatically."
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-mode-double-comma-prefix nil
@@ -339,17 +339,17 @@ If nil, use generic system task keywords regexp."
 (defcustom vlog-mode-auto-indent t
   "Toggle auto indentation when a new line is started."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-mode-auto-delete-empty-line t
   "Toggle auto deletion of empty lines when hit return."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-mode-auto-name-at-endmodule t
   "Toggle auto insertion of module name when feed the endmodule line."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 
 (defcustom vlog-mode-endmodule-auto-name-prefix " // "
   "The string added before the module name after endmodule."
@@ -359,7 +359,7 @@ If nil, use generic system task keywords regexp."
 (defcustom vlog-mode-highlight-all-uppercase-words nil
   "Toggle highlighting of all-uppercase words."
   :group 'vlog-mode
-  :type  'toggle)
+  :type  'boolean)
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 

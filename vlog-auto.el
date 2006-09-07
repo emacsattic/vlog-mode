@@ -32,28 +32,28 @@
 (defcustom vlog-auto-sense-abandon-old-list t
   "If non-nil, use the new calculated sensitive list instead of
 the old one. If nil, only add new signals if any, do no removal."
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-auto-sense-refill-old-list t
   "If non-nil, refill the original sensitive list while adding
 new signals into it.  If nil, leave the original sensitive list
 untouched while adding new signals into sensitive list; "
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-auto-sense-ignore-error t
   "If non-nil, ignore the parsing error and use partial result to
 update sensitive list.  If nil, any error during the parsing
 process will stop auto sense."
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defcustom vlog-auto-sense-use-comma t
   "Verilog 2000 allows using comma to seperate signals in
 sensitive lists, set this to non-nil to use this feature.  Note
 that it works only when Verilog 2000 support has been turned on."
-  :type  'toggle
+  :type  'boolean
   :group 'vlog-mode)
 
 (defvar vlog-auto-rvalue-list nil
