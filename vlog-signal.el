@@ -48,6 +48,9 @@
 (defvar vlog-process-siglist-function 'vlog-siglist-processor-iorw
   "Default signal list processor function.")
 
+(defvar vlog-siglist-show-parameters t
+  "Non-nil means parameters are shown in the signal list.  Nil means not.")
+
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()
   "Show signal width in echo area."
@@ -244,6 +247,7 @@ is concerned within an always block."
   (save-excursion
     (goto-char beg)
     (let (entries bound type)
+      ;; Scan for ports and signals
       (while (vlog-re-search-forward vlog-signal-decl-re end t)
         (setq bound (line-end-position)
               type  (match-string-no-properties 0))
@@ -259,7 +263,16 @@ is concerned within an always block."
             (setq entries
                   (append entries
                           (list (cons type (cons (match-string-no-properties 3)
-                                                 (point-marker)))))))))
+                                                 (point-marker))))))
+            ;; skip possible 2D reg
+            (vlog-skip-blank-and-useless-forward
+             bound nil "\\s-*\\[[^]]+\\]"))))
+      ;; Add parameters, if needed
+      (when vlog-siglist-show-parameters
+        (dolist (para (vlog-lib-get-module-parameters (cons beg end) t))
+          (setq entries
+                (append entries
+                        (list (cons "param" para))))))
       (funcall vlog-process-siglist-function entries))))
 
 (defun vlog-siglist-processor-default (lst)
@@ -280,7 +293,7 @@ of (signal . marker)."
   "Element in LST is in the form of (type signal . marker).  This
 function should return a list that contains elements in the form
 of (signal . marker)."
-  (let (type sig mkr siglist inputs outputs inouts regs wires others)
+  (let (type sig mkr siglist params inputs outputs inouts regs wires others)
     (dolist (elt lst)
       (setq type  (car  elt)
             sig   (cadr elt)
@@ -299,9 +312,12 @@ of (signal . marker)."
           (setq regs (append regs (list entry))))
          ((string= type "wire")
           (setq wires (append wires (list entry))))
+         ((string= type "param")
+          (setq params (append params (list entry))))
          (t
           (setq others (append others (list entry)))))))
     (append
+     (and params  (list (cons "Parameters" params)))
      (and inputs  (list (cons "Inputs" inputs)))
      (and outputs (list (cons "Outputs" outputs)))
      (and inouts  (list (cons "Inouts"  inouts)))
