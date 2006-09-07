@@ -701,6 +701,10 @@ call me."
   (setq vlog-indent-calc-begs
         (append vlog-indent-calc-begs '("config")))
   (vlog-indent-make-regexps)
+  ;; add localparam align support for Verilog 2000
+  (setq vlog-decl-type-words
+        (append vlog-decl-type-words '("localparam")))
+  (vlog-lib-make-regexp)
   (add-hook 'vlog-mode-make-keymap-hook
             (lambda ()
               (define-key vlog-mode-map "s" 'vlog-mode-electric-s)
