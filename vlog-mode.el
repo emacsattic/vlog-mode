@@ -500,6 +500,9 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map [menu-bar] (make-sparse-keymap))
     (define-key vlog-mode-map [menu-bar vlog-mode]
       (cons "Verilog" vlog-mode-menu-map))
+    (define-key vlog-mode-menu-map [custom]
+      '("Customize Verilog" . vlog-customize))
+    (define-key vlog-mode-menu-map [sep-custom] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [comment-region]
       '("Comment/Uncomment Region" . comment-dwim))
     (define-key vlog-mode-menu-map [indent-region]
@@ -996,8 +999,12 @@ Otherwise, run command `mark-sexp'."
                nil t))
           (mark-sexp)
           (message "Not at block beg/end, call `mark-sexp' instead."))))))
-
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+
+(defun vlog-customize ()
+  "Customize verilog support."
+  (interactive)
+  (customize-group 'verilog))
 
 (provide 'vlog-mode)
 
