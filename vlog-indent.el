@@ -161,7 +161,9 @@ Nil means `vlog-indent-directives-re' is generated from
 
 (defvar vlog-indent-beh-words-re nil)
 (defvar vlog-indent-block-beg-words-re nil)
+(defvar vlog-indent-block-beg-words-re-1 nil)
 (defvar vlog-indent-block-end-words-re nil)
+(defvar vlog-indent-block-end-words-re-1 nil)
 (defvar vlog-indent-defun-words-re nil)
 (defvar vlog-indent-words-re nil)
 
@@ -192,6 +194,14 @@ call me."
              (vlog-indent-calc-begs . vlog-indent-calc-begs-re)))
     (set (cdr regexp)
          (vlog-regexp-wrap (vlog-regexp-opt (symbol-value (car regexp)) nil))))
+  (setq vlog-indent-block-beg-words-re-1
+        (vlog-regexp-wrap (vlog-regexp-opt (append vlog-indent-block-beg-words
+                                                   '("always" "assign"))
+                                           nil)))
+  (setq vlog-indent-block-end-words-re-1
+        (vlog-regexp-wrap (vlog-regexp-opt (append vlog-indent-block-end-words
+                                                   '("always" "assign"))
+                                           nil)))
   (setq vlog-indent-directives-re
         (if vlog-use-generic-directive
             "`\\sw+\\>"
