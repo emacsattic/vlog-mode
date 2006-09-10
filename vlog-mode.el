@@ -929,7 +929,8 @@ If the cursor is not on `begin', then search the nearest `end'."
     (push-mark)
     (if (string-match vlog-indent-block-end-words-re word)
         (vlog-indent-goto-block-beg (point-min) word)
-      (vlog-re-search-backward vlog-indent-block-beg-words-re 1 t))))
+      (vlog-re-search-backward vlog-indent-block-beg-words-re-1 
+                               (point-min) t))))
 
 (defun vlog-goto-block-end ()
   "Go to end of the block, works with:
@@ -942,7 +943,8 @@ If the cursor is not on `end', then search the nearest `begin'."
     (push-mark)
     (if (string-match vlog-indent-block-beg-words-re word)
         (vlog-indent-goto-block-end (point-max) word)
-      (vlog-re-search-forward vlog-indent-block-end-words-re (point-max) t))))
+      (vlog-re-search-forward vlog-indent-block-end-words-re-1
+                              (point-max) t))))
 
 (defun vlog-goto-block-match ()
   "Go to matching beginning or the end of the block, works with:
