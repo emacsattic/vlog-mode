@@ -445,7 +445,7 @@ If nil, use generic system task keywords regexp."
   (modify-syntax-entry ?\n "> b"    table))
 
 (defun vlog-mode-make-keymap ()
-  "Make `vlog-mode-map' and run `vlog-mode-make-keymap-hook'."
+  "Make `vlog-mode-map', add menus, and run `vlog-mode-make-keymap-hook'."
   (unless (keymapp vlog-mode-map)
     (setq vlog-mode-map (make-sparse-keymap))
     (vlog-skel-setup-keymap)
@@ -501,7 +501,7 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map [menu-bar vlog-mode]
       (cons "Verilog" vlog-mode-menu-map))
     (define-key vlog-mode-menu-map [custom]
-      '("Customize Verilog" . vlog-customize))
+      '("Customize..." . vlog-customize))
     (define-key vlog-mode-menu-map [sep-custom] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [comment-region]
       '("Comment/Uncomment Region" . comment-dwim))
