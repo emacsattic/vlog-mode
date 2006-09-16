@@ -1,4 +1,3 @@
-
 /* example and tutorial file */
 
 // synopsys test line
@@ -21,7 +20,7 @@ parameter     [2:0] para1  = value1;
 parameter            [2:0]para2 = value2;
 parameter[2:0]   para3   = value3;
 
-// todo: insert an always block shown below, typing with your fingers :)
+// todo: insert an always block shown below, type with your fingers :)
 //       Make sure you typed every letter, <M-s> means type Alt+s.
 /*
 always @(posedge clk)
@@ -36,6 +35,27 @@ else
 // todo: OK, make another always block, but this time you just need to type
 //       <C-c C-c C-a>, type it below:
 
+
+// todo: Move cursor on `begin', and press <C-c TAB>.  You can see that the
+//       whole block is indented:
+always @(posedge clk)
+     begin
+  if (work)
+    if (~x && y)
+    uv = step;
+        else
+      uv = step>>1;
+        else
+          case (rog)
+              2'b00   : vsstep_uv = 11'd128;
+  2'b11   : vsstep_uv = 11'd128;
+      2'b01   : vsstep_uv = 11'd256;
+           2'b10   : vsstep_uv = 11'd64;
+  default : vsstep_uv = 11'd128;
+    endcase
+  end
+// todo: Try <C-c %> when the cursor is on `begin', `end' (any block beginning
+//       or block end) or `else'.
 
 // todo: Indent & align lines below, use TAB:
 m_ff_ce #(1,1'b0) u_ff_1 (
