@@ -61,6 +61,11 @@ You can add your own keymaps using this hook."
   :type    'hook
   :group   'vlog-mode)
 
+(defcustom vlog-mode-hook nil
+  "Normal hook that is run as the last step of `vlog-mode'."
+  :type    'hook
+  :group   'vlog-mode)
+
 (defcustom vlog-mode-auto-end-block t
   "If t, insert `end'/`join' after `begin'/`fork' automatically."
   :type  'boolean
@@ -421,7 +426,10 @@ If nil, use generic system task keywords regexp."
   ;; other settings
   (unless (stringp vlog-decl-type-words-re)
     (vlog-lib-make-regexp))
-  (setq comment-start "//"))
+  (setq comment-start "//")
+  ;;
+  ;; run the mode hook
+  (run-hooks 'vlog-mode-hook))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ syntax and keymap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
