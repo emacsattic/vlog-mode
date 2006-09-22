@@ -56,8 +56,9 @@
   "Regexp for signal declaration.")
 
 ;; (regexp-opt '("reg" "wire" "signed" "unsigned") t)
-(defvar vlog-signal-decl-2-re "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
-  "Regexp for signal declaration.")
+(defvar vlog-signal-decl-2-re
+  "\\[[^]]+\\]\\|\\(reg\\|wire\\|signed\\|unsigned\\)\\>"
+  "Another regexp for signal declaration.")
 
 ;;+ signal width detection ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-show-this-signal-width-echo ()
