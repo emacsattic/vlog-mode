@@ -228,7 +228,7 @@ is concerned within an always block."
 
 ;;+ imenu support ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-imenu-create-index-function ()
-  "Imenu support function for verilog.   This function is set as the value of
+  "Imenu support function for verilog.  This function is set as the value of
 `imenu-create-index-function'."
   (let* ((mods (vlog-lib-get-modules))
          (num  (length mods))
@@ -260,23 +260,27 @@ is concerned within an always block."
       (while (vlog-re-search-forward vlog-signal-decl-re end t)
         (setq bound (line-end-position)
               type  (match-string-no-properties 0))
+        ;; Skip possible modifiers, such as `reg unsigned [3:0] sig_name;'
         (vlog-skip-blank-and-useless-forward bound nil vlog-signal-decl-2-re)
+        ;; We use a simple while loop to deal with multiple indentifiers and
+        ;; possible following assignment after a declaration
         (catch 'done
           (while (vlog-re-search-forward
                   "\\(=\\)\\|\\(\\s-*,?\\s-*\\([A-Za-z][A-Za-z0-9_]*\\)\\)"
                   bound t)
+            ;; Stop at `=', we don't care anything after that
             (when (match-end 1)
-              ;; `=' found, stop
               (end-of-line)
               (throw 'done 'assign))
+            ;; Otherwise it's a qualified identifier
             (setq entries
                   (append entries
                           (list (cons type (cons (match-string-no-properties 3)
                                                  (point-marker))))))
-            ;; skip possible 2D reg
+            ;; Skip possible 2D reg
             (vlog-skip-blank-and-useless-forward
              bound nil "\\s-*\\[[^]]+\\]"))))
-      ;; Add parameters, if needed
+      ;; Add parameters, if they are needed
       (when vlog-siglist-show-parameters
         (dolist (para (vlog-lib-get-module-parameters (cons beg end) t))
           (setq entries
