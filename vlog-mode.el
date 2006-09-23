@@ -463,8 +463,7 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-map "\C-c\C-s"
       (lambda () (interactive)
         (message (format "%s" (vlog-indent-figure-out)))))
-    (define-key vlog-mode-map "\C-ci"
-      (lambda () (interactive) (vlog-indent-line t)))
+    (define-key vlog-mode-map "\C-ci"    'vlog-auto-instantiation)
     (define-key vlog-mode-map "\C-c\C-i" 'vlog-indent-this-block)
     (define-key vlog-mode-map (kbd "<C-M-SPC>") 'vlog-select-block-or-sexp)
     (define-key vlog-mode-map "\C-c\C-a" 'vlog-auto-sense)
