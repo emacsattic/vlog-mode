@@ -635,6 +635,13 @@ BODY within that buffer.  If KILL is non-nil, kill the buffer in the end."
 (defsubst vlog-lib-get-module-ports-internal-2 (region)
   "A wrapper for `vlog-lib-get-module-ports-internal'."
   (vlog-lib-get-module-ports-internal (car region) (cdr region)))
+
+(defun vlog-lib-sans-port-types (ports)
+  "Return a list of ports."
+  (let (ret)
+    (dolist (p ports)
+      (setq ret (append ret (list (cdr p)))))
+    ret))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-lib)
