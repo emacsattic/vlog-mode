@@ -463,6 +463,41 @@ a list consits of cons cells (NAME BEG . END)."
                   mbeg    beg)))))
     ret))
 
+(defun vlog-lib-get-module-region (target)
+  "Find module TARGET.  Return (BEG . END) if module definition
+is found, otherwise return nil."
+  (let ((bound (point-max))
+        (for-beg t) ;; record the state
+        is-end name mod beg end ret mbeg)
+    (save-excursion
+      (goto-char (point-min))
+      (catch 'done
+        (while (vlog-re-search-forward
+                "\\<\\(macro\\|\\(end\\)\\)*module\\>" bound t)
+          ;; record beg/end
+          (setq is-end (numberp (match-end 2))
+                end    (match-beginning 0)
+                beg    (match-end 0))
+          ;; find the module name if it's a beg
+          (unless is-end
+            (vlog-skip-blank-and-useless-forward bound)
+            (if (looking-at "\\sw+\\>")
+                (setq mod (match-string-no-properties 0))
+              (throw 'done 'mod-name-not-found)))
+          ;; no matter it's a beg or an end, a module ends here!
+          (unless for-beg
+            (setq for-beg is-end)
+            (when (string= target name)
+              ;; we find it!
+              (setq ret (cons mbeg end))
+              (throw 'done t)))
+          ;; if it's a beg, update info
+          (unless is-end
+            (setq for-beg nil
+                  name    mod
+                  mbeg    beg)))))
+    ret))
+
 (defun vlog-lib-word-atpt (&optional return-nil return-bound move)
   "Return the word at current point.
 If RETURN-NIL is t, then return nil if none.
@@ -504,6 +539,68 @@ Otherwise do not move the cursor."
                      (or (buffer-file-name buf) ""))
        buf))
 
+(defsubst vlog-lib-qualified-buffers ()
+  "Find qualified buffers with `vlog-lib-buffer-qualified-p'."
+  (vlog-lib-grep #'vlog-lib-buffer-qualified-p (buffer-list)))
+
+(defsubst vlog-lib-qualified-buffer-filenames ()
+  "Find qualified file names with `vlog-lib-buffer-qualified-p'."
+  (mapcar #'buffer-file-name
+          (vlog-lib-grep #'vlog-lib-buffer-qualified-p (buffer-list))))
+
+(defun vlog-lib-glob (dir &optional regexp)
+  "Find files under directory DIR.  If REGEXP is provided, use it as
+the filter; If not, use `vlog-lib-src-qualify-re' as the filter."
+  (directory-files dir t (if (stringp regexp)
+                             regexp
+                           vlog-lib-src-qualify-re) t))
+
+(defun vlog-lib-lift-item-from-list (elt lst &optional func)
+  "Return a new list with ELT as the first element.  If ELT is
+not a member of list LST, return LST.  FUNC is used to judge the
+existence of ELT in LST, `eq' is used if FUNC is not provided."
+  (let ((f (if (functionp func) func #'eq))
+        ret)
+    (mapc (lambda (x)
+            (setq ret
+                  (if (funcall f x elt) (cons x ret) (append ret (list x)))))
+          lst)
+    ret))
+
+(defun vlog-lib-memq (elt lst func)
+  "Return t if ELT is a member of LST.  Comparison is done with FUNC."
+  (catch 'done
+    (mapc (lambda (x) (and (funcall func elt x)
+                           (throw 'done t)))
+          lst)
+    nil))
+
+(defun vlog-lib-wipe (good bad &optional jury)
+  "Return a list with anything in BAD wiped from GOOD.
+If JURY is not provided, `eq' is used."
+  (let ((f (if (functionp jury) jury #'eq))
+        ret)
+    (mapc (lambda (x)
+            (unless (vlog-lib-memq x bad f)
+              (setq ret (append ret (list x)))))
+          good)
+    ret))
+
+(defmacro vlog-lib-with-current-file (file kill &rest body)
+  "Find FILE (possibly with existing buffers or created new buffers), and do
+BODY within that buffer.  If KILL is non-nil, kill the buffer in the end."
+  (declare (indent 2) (debug t))
+  `(let (--ret) ;; use `--ret' to avoid possible naming problems
+     (if (and (stringp ,file)
+              (file-exists-p ,file))
+         (save-current-buffer
+           (set-buffer
+            (let ((enable-local-variables nil)) ;; Turn off local vars
+              (find-file-noselect ,file)))
+           (setq --ret ,@body)
+           (and ,kill (kill-buffer (current-buffer)))
+           --ret))))
+
 ;;+ get module port information ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-lib-get-module-ports-internal (beg end)
   "Return module ports defined within the region from BEG to END."
@@ -534,6 +631,10 @@ Otherwise do not move the cursor."
             (vlog-skip-blank-and-useless-forward
              bound nil "\\s-*\\[[^]]+\\]"))))
       (funcall vlog-lib-sort-portlist-function entries))))
+
+(defsubst vlog-lib-get-module-ports-internal-2 (region)
+  "A wrapper for `vlog-lib-get-module-ports-internal'."
+  (vlog-lib-get-module-ports-internal (car region) (cdr region)))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-lib)
