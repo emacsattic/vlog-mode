@@ -28,6 +28,7 @@
 
 (require 'cl)
 (require 'vlog-lib)
+(require 'vlog-indent)
 
 (defgroup vlog-auto nil
   "Customizations for code automation."
@@ -58,6 +59,19 @@ process will stop auto sense."
 sensitive lists, set this to non-nil to use this feature.  Note
 that it works only when Verilog 2000 support has been turned on."
   :type  'boolean
+  :group 'vlog-auto)
+
+(defcustom vlog-lib-auto-keyword-re
+  "^//\\s-+\\(auto \\(\\sw+\\)\\)\\s-+//\\s-*$"
+  "The automation keyword regexp."
+  :type  'string
+  :group 'vlog-auto)
+
+(defcustom vlog-auto-mod-def-try-functions
+  '(vlog-auto-mod-def-try-current-buffers
+    vlog-auto-mod-def-try-vicinal-files)
+  "A list of functions to try to get module definition."
+  :type  '(repeat function)
   :group 'vlog-auto)
 
 (defvar vlog-auto-rvalue-list nil
@@ -395,6 +409,104 @@ Signals are stored in `vlog-auto-rvalue-list'."
       (when (not ignorep)
         (add-to-list 'vlog-auto-rvalue-list value)))
     (goto-char end)))
+
+;;+ auto instantiation ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun vlog-auto-mod-def-try-current-buffers (target)
+  "Look current verilog buffers for module TARGET's definition.
+Return the result in the form of a list of cons (type . name), or
+nil if module's definition is not found."
+  (let (ports)
+    (catch 'done
+      ;; Try each qualified buffer to find definition for `target'
+      (mapc
+       #'(lambda (buff)
+           (with-current-buffer buff
+             (let ((region (vlog-lib-get-module-region target)))
+               (when region
+                 ;; When module definition found, extract the port list
+                 (message "Module `%s' found in buffer <%s>" target buff)
+                 (setq ports (vlog-lib-get-module-ports-internal-2 region))
+                 (throw 'done t)))))
+       ;; Get quailfied buffers
+       (vlog-lib-qualified-buffers)))
+    ports))
+
+(defun vlog-auto-mod-def-try-vicinal-files (target)
+  "Look files in the current directory for module TARGET's definition.
+Return the result in the form of a list of cons (type . name), or
+nil if module's definition is not found."
+  (let ((files (vlog-lib-lift-item-from-list
+                ;; Move the most promising candidate to the first place
+                (concat (file-name-directory (buffer-file-name)) target ".v")
+                (vlog-lib-glob ".") #'string=))
+        ports)
+    ;; Extract live (opened) ones from `files'
+    (setq files (vlog-lib-wipe
+                 files (vlog-lib-qualified-buffer-filenames) #'string=))
+    (catch 'done
+      ;; Try each buffer within `files' to find definition for `target'
+      (mapc 
+       #'(lambda (file)
+           (vlog-lib-with-current-file file t
+             (let ((region (vlog-lib-get-module-region target)))
+               (when region
+                 ;; When module definition found, extract the port list
+                 (setq ports (vlog-lib-get-module-ports-internal-2 region))
+                 (message "Module `%s' found in file <%s>" target file))))
+           (and ports (throw 'done t)))
+       files))
+    ports))
+
+(defun vlog-auto-find-module-definition (target)
+  "If the definition of TARGET is found, return a list of
+cons (type . name);  Otherwise return nil."
+  (catch 'found
+    (mapc #'(lambda (try)
+              (let ((p (funcall try target)))
+                (and p (throw 'found p))))
+          vlog-auto-mod-def-try-functions)
+    nil))
+
+(defun vlog-auto-inst-name (module)
+  "Generate an instance name for MODULE."
+  (if (string-match "^m_\\(.+\\)$" module)
+      (concat "u_" (match-string 1 module))
+    (concat "u_" module)))
+
+(defun vlog-auto-instantiation ()
+  (interactive)
+  (save-excursion
+    ;; Look back up to 3 lines for some work to do
+    (if (re-search-backward
+         "^// auto inst[a-z]* //\\s-*\n+\\s-*\\(\\sw+\\)"
+         (line-beginning-position -2) t)
+        ;; OK, we have some work to do
+        (let* ((module (match-string-no-properties 1))
+               (begpt  (match-end 0))
+               (ports  (vlog-auto-find-module-definition module)))
+          (setq ports (vlog-lib-sans-port-types ports))
+          (if ports
+              (progn
+                (goto-char begpt)
+                ;; name the instance if there's not one
+                (if (looking-at "\\s-*$")
+                    (insert " " (vlog-auto-inst-name module))
+                  (end-of-line))
+                (insert " (")
+                ;; insert ports
+                (dolist (p ports)
+                  (insert "\n")
+                  (indent-to-column vlog-indent-level-port-list)
+                  (insert "." p)
+                  (indent-to-column (car vlog-align-mod-inst-stop-list))
+                  (insert "(),"))
+                ;; final clean up
+                (backward-delete-char 1)
+                (insert ");"))
+            (message "Module definition for `%s' not found" module)))
+      ;; I'm not doing anything
+      (message "`// auto inst //' not found within 3 lines."))))
+;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 (provide 'vlog-auto)
 
