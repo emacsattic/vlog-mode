@@ -430,6 +430,9 @@ If nil, use generic system task keywords regexp."
   ;;
   ;; run the mode hook
   (run-hooks 'vlog-mode-hook))
+
+;; Make it available on package loading
+(vlog-indent-make-regexps)
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ syntax and keymap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
