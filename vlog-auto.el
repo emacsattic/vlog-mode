@@ -457,6 +457,66 @@ nil if module's definition is not found."
        files))
     ports))
 
+(defcustom vlog-auto-portlist-sort-method 'inout-alphab
+  "The method used to re-sort port list before module instantiation.
+Choices are:
+'alphabetical   Sort the port list alphabetically.
+'inout          Sort the port list with input, output and inout groups,
+                in the order specified by `vlog-auto-portlist-inout-spec'.
+'inout-alphab   Similar to 'inout, but sort the port list alphabetically
+                within every group.
+other values    No re-sort, which means use the defining order."
+  :type  '(choice (const :tag "Alphabetical"           alphabetical)
+                  (const :tag "Inout"                  inout)
+                  (const :tag "Inout and alphabetical" inout-alphab)
+                  (other :tag "Original order"         nil))
+  :group 'vlog-auto)
+
+(defcustom vlog-auto-portlist-inout-spec '(input inout output)
+  "The ordering spec used by `vlog-auto-sort-portlist-inout'."
+  :type '(list (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout))
+               (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout))
+               (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout)))
+  :group 'vlog-auto)
+
+(defun vlog-auto-sort-portlist-inout (lst)
+  "Reorder port list LST with the method specified by
+`vlog-auto-portlist-sort-method', and in the order specified by
+`vlog-auto-portlist-inout-spec'."
+  (let ((cdrstr< (lambda (x y)
+                   (string< (cdr x) (cdr y))))
+        input output inout)
+    ;; group them first
+    (if (eq vlog-auto-portlist-sort-method 'alphabetical)
+        ;; 'alphabetical
+        (sort lst cdrstr<)
+      (if (memq vlog-auto-portlist-sort-method '(inout inout-alphab))
+          ;; 'inout, 'inout-alphab
+          (progn
+            (dolist (p lst)
+              (cond
+               ((string= "input" (car p))
+                (setq input (append input (list p))))
+               ((string= "output" (car p))
+                (setq output (append output (list p))))
+               ((string= "inout" (car p))
+                (setq inout (append inout (list p))))))
+            ;; 'inout-alphab
+            (when (eq vlog-auto-portlist-sort-method 'inout-alphab)
+              (setq input  (sort input  cdrstr<))
+              (setq output (sort output cdrstr<))
+              (setq inout  (sort inout  cdrstr<)))
+            ;; reassemble them
+            (apply 'append (mapcar 'symbol-value vlog-auto-portlist-inout-spec)))
+        ;; do nothing
+        lst))))
+
 (defun vlog-auto-find-module-definition (target)
   "If the definition of TARGET is found, return a list of
 cons (type . name);  Otherwise return nil."
@@ -483,6 +543,8 @@ cons (type . name);  Otherwise return nil."
         ;; OK, we have some work to do
         (let* ((module (match-string-no-properties 1))
                (begpt  (match-end 0))
+               (vlog-lib-sort-portlist-function
+                'vlog-auto-sort-portlist-inout)
                (ports  (vlog-auto-find-module-definition module)))
           (setq ports (vlog-lib-sans-port-types ports))
           (if ports
