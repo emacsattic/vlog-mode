@@ -74,6 +74,34 @@ that it works only when Verilog 2000 support has been turned on."
   :type  '(repeat function)
   :group 'vlog-auto)
 
+(defcustom vlog-auto-portlist-sort-method 'inout-alphab
+  "The method used to re-sort port list before module instantiation.
+Choices are:
+'alphabetical   Sort the port list alphabetically.
+'inout          Sort the port list with input, output and inout groups,
+                in the order specified by `vlog-auto-portlist-inout-spec'.
+'inout-alphab   Similar to 'inout, but sort the port list alphabetically
+                within every group.
+other values    No re-sort, which means use the defining order."
+  :type  '(choice (const :tag "Alphabetical"           alphabetical)
+                  (const :tag "Inout"                  inout)
+                  (const :tag "Inout and alphabetical" inout-alphab)
+                  (other :tag "Original order"         nil))
+  :group 'vlog-auto)
+
+(defcustom vlog-auto-portlist-inout-spec '(input inout output)
+  "The ordering spec used by `vlog-auto-sort-portlist-inout'."
+  :type '(list (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout))
+               (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout))
+               (choice (const :tag "Input"  input)
+                       (const :tag "Output" output)
+                       (const :tag "Inout"  inout)))
+  :group 'vlog-auto)
+
 (defvar vlog-auto-rvalue-list nil
   "DO NOT touch me.")
 (make-variable-buffer-local 'vlog-auto-rvalue-list)
@@ -456,34 +484,6 @@ nil if module's definition is not found."
            (and ports (throw 'done t)))
        files))
     ports))
-
-(defcustom vlog-auto-portlist-sort-method 'inout-alphab
-  "The method used to re-sort port list before module instantiation.
-Choices are:
-'alphabetical   Sort the port list alphabetically.
-'inout          Sort the port list with input, output and inout groups,
-                in the order specified by `vlog-auto-portlist-inout-spec'.
-'inout-alphab   Similar to 'inout, but sort the port list alphabetically
-                within every group.
-other values    No re-sort, which means use the defining order."
-  :type  '(choice (const :tag "Alphabetical"           alphabetical)
-                  (const :tag "Inout"                  inout)
-                  (const :tag "Inout and alphabetical" inout-alphab)
-                  (other :tag "Original order"         nil))
-  :group 'vlog-auto)
-
-(defcustom vlog-auto-portlist-inout-spec '(input inout output)
-  "The ordering spec used by `vlog-auto-sort-portlist-inout'."
-  :type '(list (choice (const :tag "Input"  input)
-                       (const :tag "Output" output)
-                       (const :tag "Inout"  inout))
-               (choice (const :tag "Input"  input)
-                       (const :tag "Output" output)
-                       (const :tag "Inout"  inout))
-               (choice (const :tag "Input"  input)
-                       (const :tag "Output" output)
-                       (const :tag "Inout"  inout)))
-  :group 'vlog-auto)
 
 (defun vlog-auto-sort-portlist-inout (lst)
   "Reorder port list LST with the method specified by
