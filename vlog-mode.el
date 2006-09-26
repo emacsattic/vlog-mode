@@ -448,6 +448,17 @@ If nil, use generic system task keywords regexp."
   ;; run the mode hook
   (run-hooks 'vlog-mode-hook))
 
+(defun vlog-mode-add-file-ext (str)
+  "Add file extentions in the string STR to `auto-mode-alist'.
+\"v vl vskel\" gives a list of (\"v\" \"vl\" \"vskel\"); Given
+\"ext\", \"\\\\.ext\\\\'\" will be added."
+  (setq auto-mode-alist
+        (append auto-mode-alist
+                (mapcar (lambda (e)
+                          (and (stringp e)
+                               (cons (concat "\\." e "\\'") 'vlog-mode)))
+                        (split-string str " ")))))
+
 ;; Make it available on package loading
 (vlog-indent-make-regexps)
 
