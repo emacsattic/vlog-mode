@@ -64,3 +64,9 @@ codes.
    buffers and vinical (in the same directory) verilog files.
 
 ** Code folding, using hs-minor-mode from package hideshow.
+
+** Easy customization
+*** (vlog-mode-add-file-ext "v vl vskel") will associate *.v *.vl and *.vskel
+    with vlog-mode.
+*** (vlog-mode-add-doc-keywords '("note:") t) will add "note:", "Note:" and
+    "NOTE:" to `vlog-mode-keywordset-docs'.
