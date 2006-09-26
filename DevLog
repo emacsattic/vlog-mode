@@ -11,14 +11,12 @@ codes.
 ** AUTO features, especially auto sensitive list WITHOUT /*AUTO_SENSE*/
    directive comments.
 
-** Module ports detection and auto module instantiation; Hierarchical module
-   ports listing and hinting, something like "intellisense" or better.
+** Hierarchical module ports listing and hinting, something like
+   "intellisense" or better.
 
 ** A "tuner" for indentation and alignment settings. Ideas are needed.
 
 ** Signal width detection using tooltip around the cursor, not the mouse.
-
-** Code folding with hs-minor-mode.
 
 ** XEmacs compatability tests.
 
@@ -61,3 +59,8 @@ codes.
     based on the suppose that most signals are described seperately in
     seperate always blocks and, in most always blocks, there's only one
     left signal.
+
+** Auto instantiation, detecting module definition within current verilog
+   buffers and vinical (in the same directory) verilog files.
+
+** Code folding, using hs-minor-mode from package hideshow.
