@@ -712,6 +712,23 @@ call me."
                    (list "\\<[A-Z][A-Z0-9_]*\\>" (list 0 vlog-mode-number-face 'append))))))
   t)
 
+(defun vlog-mode-add-doc-keywords (lst &optional derive)
+  "Add documentation keywords in the list LST (usually embedded in comments)
+to `vlog-mode-keywordset-docs'.
+
+If DERIVE is non-nil, automatically add upper-case and capitilized words
+that derive from the words specified in LST.  For example:
+\(vlog-mode-add-doc-keywords '(\"note:\") t)
+will add \"Note:\" and \"NOTE:\" too."
+  (let (l)
+    (dolist (w lst)
+      (setq l (if derive
+                  (list w (upcase w) (capitalize w))
+                (list w)))
+      (setq vlog-mode-keywordset-docs
+            (append vlog-mode-keywordset-docs l)))
+    (vlog-mode-make-keywords)))
+
 (defun vlog-mode-enable-v2k ()
   "Enable Verilog 2000 support."
   (interactive)
