@@ -29,6 +29,7 @@
 
 (require 'cl)
 (require 'font-lock)
+(require 'hideshow)
 
 (require 'vlog-lib)
 (require 'vlog-indent)
@@ -369,6 +370,16 @@ If nil, use generic system task keywords regexp."
   "Toggle highlighting of all-uppercase words."
   :group 'vlog-mode
   :type  'boolean)
+
+(defcustom vlog-mode-enable-menu-bar-signal-list t
+  "Toggle signal list in menu bar."
+  :group 'vlog-mode
+  :type  'boolean)
+
+(defcustom vlog-mode-enable-folding-with-hideshow t
+  "Toggle code folding with hideshow."
+  :group 'vlog-mode
+  :type  'boolean)
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 
@@ -428,11 +439,24 @@ If nil, use generic system task keywords regexp."
     (vlog-lib-make-regexp))
   (setq comment-start "//")
   ;;
+  ;; work with `imenu' and `hideshow'
+  (and vlog-mode-enable-menu-bar-signal-list
+       (imenu-add-to-menubar "Signals"))
+  (and vlog-mode-enable-folding-with-hideshow
+       (hs-minor-mode 1))
+  ;;
   ;; run the mode hook
   (run-hooks 'vlog-mode-hook))
 
 ;; Make it available on package loading
 (vlog-indent-make-regexps)
+
+;; Work with hideshow (`hs-minor-mode')
+(add-to-list 'hs-special-modes-alist
+             `(vlog-mode
+               ,vlog-indent-block-beg-words-re
+               ,vlog-indent-block-end-words-re
+               "/[/*]" vlog-forward-sexp nil))
 ;;- ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 
 ;;+ syntax and keymap ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
@@ -955,6 +979,11 @@ If the cursor is not on `end', then search the nearest `begin'."
         (vlog-indent-goto-block-end (point-max) word)
       (vlog-re-search-forward vlog-indent-block-end-words-re-1
                               (point-max) t))))
+
+(defun vlog-forward-sexp (&optional arg)
+  "Just a wrapper for `vlog-goto-block-end' with a useless ARG,
+used by `hs-minor-mode'."
+  (vlog-goto-block-end))
 
 (defun vlog-goto-block-match ()
   "Go to matching beginning or the end of the block, works with:
