@@ -618,7 +618,7 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
       (setq type 'none
             icol 0))
      (t
-      (if (looking-at "\\(end.*\\)\\|\\(join\\)")
+      (if (looking-at vlog-indent-block-end-words-re)
           (if (vlog-indent-goto-block-beg limit (match-string-no-properties 0))
               (setq icol (vlog-indent-level-at-pos)
                     type 'block-end)
