@@ -506,6 +506,7 @@ If nil, use generic system task keywords regexp."
         (message (format "%s" (vlog-indent-figure-out)))))
     (define-key vlog-mode-map "\C-ci"    'vlog-auto-instantiation)
     (define-key vlog-mode-map "\C-c\C-i" 'vlog-indent-this-block)
+    (define-key vlog-mode-map [3 C-tab]  'align)
     (define-key vlog-mode-map (kbd "<C-M-SPC>") 'vlog-select-block-or-sexp)
     (define-key vlog-mode-map "\C-c\C-a" 'vlog-auto-sense)
     (define-key vlog-mode-map "\C-c\C-u" 'vlog-auto-sense-update-this-block)
@@ -553,6 +554,8 @@ If nil, use generic system task keywords regexp."
     (define-key vlog-mode-menu-map [sep-custom] '("--")) ;; ------------------
     (define-key vlog-mode-menu-map [comment-region]
       '("Comment/Uncomment Region" . comment-dwim))
+    (define-key vlog-mode-menu-map [align-region]
+      '("Align Region" . align))
     (define-key vlog-mode-menu-map [indent-region]
       '("Indent Region" . indent-region))
     (define-key vlog-mode-menu-map [align-line]
