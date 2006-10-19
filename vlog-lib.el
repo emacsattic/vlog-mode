@@ -532,6 +532,12 @@ Otherwise do not move the cursor."
                   (lambda (x) (if x (list x) nil))
                   (mapcar func lst))))
 
+(defun vlog-lib-filter-assoc (filter lst)
+  "Filter list LST with list FILTER and return the new list.
+Any element in LST whose car is the member of FILTER remains in
+the result list, any other that is not will be excluded."
+  (mapcar #'(lambda (elt) (assoc elt lst)) filter))
+
 (defun vlog-lib-buffer-qualified-p (buf)
   "Return BUF if BUF is qualified, or nil if BUF is not qualified."
   (and (bufferp buf)
