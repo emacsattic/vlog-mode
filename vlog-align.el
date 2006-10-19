@@ -27,8 +27,10 @@
 ;;; Code:
 
 (require 'cl)
+(require 'align)
 (require 'vlog-lib)
 
+;;+ Customizations ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defgroup vlog-align nil
   "Customizations for code alignment."
   :group 'verilog)
@@ -77,8 +79,62 @@ Then you can set me to '(10 18 30 34 48)."
   :group 'vlog-align
   :type  'boolean)
 
-;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defcustom vlog-align-separate-method 'entire
+  "The buffer local value for `align-region-separate'.
+See `align-region-separate' for more information."
+  :group 'vlog-align
+  :type  '(choice
+           (const    :tag "Entire region is one section" entire)
+           (const    :tag "Align by contiguous groups" group)
+           (regexp   :tag "Regexp defines section boundaries")
+           (function :tag "Function defines section boundaries")))
 
+(defcustom vlog-align-exclude-rules
+  '(line-comments)
+  "A more friendly list for users to choose alignment exclude rules."
+  :group 'vlog-align
+  :type  '(set (const :tag "Exclude line comments"
+                      line-comments)))
+
+(defcustom vlog-align-rules
+  '(declaration sig-assign cont-assign)
+  "A more friendly list for users to choose alignment rules."
+  :group 'vlog-align
+  :type  '(set (const :tag "Declaration:           (reg [7:0] counter;)"
+                      declaration)
+               (const :tag "Signal assignment:     (foo <= bar;)"
+                      sig-assign)
+               (const :tag "Continuous assignment: (sssign foo = bar;)"
+                      cont-assign)))
+
+;;+ Internal variables ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defvar vlog-align-exclude-rules-list
+  `(;; exclude line comments
+    (line-comments
+     (regexp . "^\\s-*//.+$")
+     (group  . 0)))
+  "A list describing texts that should be excluded from alignment.
+See the documentation for `align-rules-list' for more info.")
+
+(defvar vlog-align-rules-list
+  `(;; reg unsigned [7:0] reg_1
+    (declaration
+     (regexp . ,(concat "\\<\\(?:" (vlog-regexp-opt vlog-decl-type-words nil)
+                        "\\)\\>" "\\(\\s-*\\)"
+                        "\\(" vlog-port-decl-2-re "\\s-*\\)*\\(\\s-+\\)"))
+     (group . (1 4)))
+    ;; foo <= bar
+    (sig-assign
+     (regexp . "\\S-\\(\\s-*\\)<=\\(\\s-*\\)\\S-")
+     (group . (1 2)))
+    ;; assign foo = bar
+    (cont-assign
+     (regexp . "^[ \t]*assign\\(\\s-*+\\)[^= ]+\\(\\s-*\\)=\\(\\s-*\\)\\S-")
+     (group . (1 2 3))))
+  "A list describing all available alignment rules for `vlog-mode'.
+See the documentation for `align-rules-list' for more information.")
+
+;;+ Alignment functions ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 (defun vlog-align-line (&optional inparen)
   "Do align for this line. If INPAREN is set, 'inparen means in
 parenthesis, and 'normal means not in parens.  If INPAREN is not
@@ -168,7 +224,8 @@ Optional arg ICOL is the indentation column of current line."
        ((eq state 'bitw)
         (if (not (looking-at "\\["))
             (setq state 'name)
-          (vlog-lib-indent-to-column (+ icol (car vlog-align-declaration-stop-list)))
+          (vlog-lib-indent-to-column
+           (+ icol (car vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward "\\]" (line-end-position) t)
               (progn
                 (skip-chars-forward " \t" (line-end-position))
@@ -177,7 +234,8 @@ Optional arg ICOL is the indentation column of current line."
        ((eq state 'name)
         (if (not (looking-at "\\sw"))
             (setq state 'done)
-          (vlog-lib-indent-to-column (+ icol (nth 1 vlog-align-declaration-stop-list)))
+          (vlog-lib-indent-to-column
+           (+ icol (nth 1 vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward "[=;]" (line-end-position) t)
               (if (string= (match-string 0) ";")
                   (progn
@@ -187,14 +245,16 @@ Optional arg ICOL is the indentation column of current line."
                 (setq state 'equal))
             (setq state 'done))))
        ((eq state 'equal)
-        (vlog-lib-indent-to-column (+ icol (nth 2 vlog-align-declaration-stop-list)))
+        (vlog-lib-indent-to-column
+         (+ icol (nth 2 vlog-align-declaration-stop-list)))
         (forward-char 1)
         (skip-chars-forward " \t" (line-end-position))
         (setq state 'value))
        ((eq state 'value)
         (if (not (looking-at "\\sw"))
             (setq state 'done)
-          (vlog-lib-indent-to-column (+ icol (nth 3 vlog-align-declaration-stop-list)))
+          (vlog-lib-indent-to-column
+           (+ icol (nth 3 vlog-align-declaration-stop-list)))
           (if (vlog-re-search-forward ";" (line-end-position) t)
               (progn
                 (skip-chars-forward " \t" (line-end-position))
@@ -202,9 +262,30 @@ Optional arg ICOL is the indentation column of current line."
             (setq state 'done))))
        ((eq state 'comment)
         (when (looking-at "/\\(/\\|\\*\\)")
-          (vlog-lib-indent-to-column (+ icol (nth 4 vlog-align-declaration-stop-list))))
+          (vlog-lib-indent-to-column
+           (+ icol (nth 4 vlog-align-declaration-stop-list))))
         (setq state 'done))
        (t (setq state 'done))))))
+
+;;+ Make vlog-mode work with align.el ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+(defun vlog-align-activate-align-rules ()
+  "Filter `vlog-align-rules-list' with `vlog-align-rules' to get
+the local value of `align-mode-rules-list'; and filter
+`vlog-align-exclude-rules-list' with `vlog-align-exclude-rules'
+to get the local value of `align-mode-exclude-rules-list'.  These
+two local values will make vlog-mode buffers work with align.el."
+  ;; Set rules for alignments
+  (setq align-mode-rules-list
+        (vlog-lib-filter-assoc vlog-align-rules vlog-align-rules-list)
+        align-mode-exclude-rules-list
+        (vlog-lib-filter-assoc vlog-align-exclude-rules
+                               vlog-align-exclude-rules-list))
+  ;; Make separate method buffer local
+  (set (make-local-variable 'align-region-separate)
+       vlog-align-separate-method)
+  ;; Add vlog-mode to various align modes
+  (add-to-list 'align-dq-string-modes 'vlog-mode)
+  (add-to-list 'align-open-comment-modes 'vlog-mode))
 
 (provide 'vlog-align)
 
