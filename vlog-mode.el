@@ -445,6 +445,9 @@ If nil, use generic system task keywords regexp."
   (and vlog-mode-enable-folding-with-hideshow
        (hs-minor-mode 1))
   ;;
+  ;; work with `align'
+  (vlog-align-activate-align-rules)
+  ;;
   ;; run the mode hook
   (run-hooks 'vlog-mode-hook))
 
