@@ -129,7 +129,7 @@ See the documentation for `align-rules-list' for more info.")
      (group . (1 2)))
     ;; assign foo = bar
     (cont-assign
-     (regexp . "^[ \t]*assign\\(\\s-*+\\)[^= ]+\\(\\s-*\\)=\\(\\s-*\\)\\S-")
+     (regexp . "^\\s-*assign\\(\\s-+\\)\\(?:{[^}]+}\\|[^= ]+\\)\\(\\s-*\\)=\\(\\s-*\\)")
      (group . (1 2 3))))
   "A list describing all available alignment rules for `vlog-mode'.
 See the documentation for `align-rules-list' for more information.")
