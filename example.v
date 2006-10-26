@@ -4,23 +4,46 @@
 
 // psl assert test line
 
-// todo: press TAB on each line below
+// todo: Press TAB on each line below
 module example (
   in_port,
             out_port
          );
 
-// todo: type "input 3 in_port;<RET>" and "output 5 out_put;<RET>" below:
+// todo: Type "input 3 in_port;<RET>" and "output 5 out_put;<RET>" below:
 
 
 reg       [1:0]   sig_test;                     // test signal
 
-// todo: line up lines below, use TAB:
+// todo: Line up lines below, use TAB:
 parameter     [2:0] para1  = value1;
 parameter            [2:0]para2 = value2;
 parameter[2:0]   para3   = value3;
 
-// todo: insert an always block shown below, type with your fingers :)
+// todo: Select the code block below, use C-c C-TAB or M-x align <RET>.  Emacs
+//       will compute appropriate align columns and align the code for you:
+reg unsigned counter;
+reg [1:0] result;
+wire [width-1:0] comp;
+
+// todo: Code alignment works with declarations as well as assignments.
+//       Try it on the two code blocks blow:
+assign comp_a = {a[width-1] ^ comp_op[3] , a[width-2:0]};
+assign comp_b = {b[width-1] ^ comp_op[3] , b[width-2:0]};
+assign a_eq_b = (comp_a == comp_b);
+assign a_lt_b = (comp_a < comp_b);
+assign {cy_sum, result_sum} = a + b;
+assign {cy_csum, result_csum} = a + b + {32'd0, carry};
+assign result_and = a & b;
+
+begin
+  a_very_long_signal_name <= {a[31:8], b[7:0]};
+  cust <= {a[31:16], b[7:0], a[7:0]};
+  short_sig <= {a[31:24], b[7:0], a[15:0]};
+  another_signal <= {b[7:0], a[23:0]};
+end
+
+// todo: Insert an always block shown below, type with your fingers :)
 //       Make sure you typed every letter, <M-s> means type Alt+s.
 /*
 always @(posedge clk)
