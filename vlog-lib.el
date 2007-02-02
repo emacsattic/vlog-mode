@@ -48,8 +48,8 @@
 (defconst vlog-mode-xemacs-p (string-match "XEmacs" emacs-version))
 
 (defvar vlog-decl-type-words
-  '("input" "inout" "output" "reg" "wire" "parameter"
-    "defparam" "event" "integer" "signed" "unsigned")
+  '("input" "output" "inout" "reg" "wire" "integer" "real"
+    "signed" "unsigned" "event" "parameter" "defparam" )
   "Keywords for port/net/identifiers declararion.  The full list is large,
 but for performance reason only a few of them are encounted by default.
 You can add more and then call `vlog-lib-make-regexp'.")
