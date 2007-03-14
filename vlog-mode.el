@@ -249,6 +249,21 @@ If nil, use generic system task keywords regexp."
 (defvar vlog-mode-v2k-enabled nil
   "DO NOT touch me.  Use `vlog-mode-enable-v2k'")
 
+(defvar vlog-mode-compilation-error-regexp
+  '(;; Format is (regexp file line column warning-or-error)
+    ;; synopsys vcs
+    ("Warning[^(]*(\\([^ \t]+\\) line *\\([0-9]+\\))" 1 2 nil 1)
+    ("Error[^(]*(\\([^ \t]+\\) line *\\([0-9]+\\))" 1 2 nil 2)
+    ("Warning-\\([\n]\\|.\\)*?[ \t]*\"\\([^\"]+\\)\", \\([0-9]+\\)" 2 3 nil 2)
+    ("Error-\\([\n]\\|.\\)*?[ \t]*\"\\([^\"]+\\)\", \\([0-9]+\\)" 2 3 nil 2)
+    ("Warning:.*(port.*(\\([^ \t]+\\) line \\([0-9]+\\))" 1 2 nil 1)
+    ("syntax error:.*\n\\([^ \t]+\\) *\\([0-9]+\\):" 1 2 nil 2)
+    ;; nLint
+    ("^[ \t]*\\(.*\\)[ \t]*(\\([0-9]+\\)): Warning" 1 2 nil 1)
+    ("^[ \t]*\\(.*\\)[ \t]*(\\([0-9]+\\)): Error" 1 2 nil 2))
+  "List of regexp for parsing compilation errors and warnings.
+See `compilation-error-regexp-alist' for more details.")
+
 ;; faces ---------------------------------------------------------------------
 (defface vlog-mode-psl-tag-face
   '((((class color)
@@ -433,6 +448,11 @@ If nil, use generic system task keywords regexp."
     (vlog-indent-make-regexps))
   (make-local-variable 'indent-line-function)
   (setq indent-line-function 'vlog-indent-line)
+  ;;
+  ;; work with compilation
+  (setq compilation-error-regexp-alist
+        (append vlog-mode-compilation-error-regexp
+                compilation-error-regexp-alist))
   ;;
   ;; other settings
   (unless (stringp vlog-decl-type-words-re)
