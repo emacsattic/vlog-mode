@@ -36,13 +36,18 @@
   :group 'verilog)
 
 (defcustom vlog-indent-align-port-list-to-paren nil
-  "If t, indent ports inside parens."
+  "If non-nil, indent ports inside parens."
   :group 'vlog-indent
   :type  'boolean)
 
 (defcustom vlog-indent-align-else-to-if nil
-  "If true, align `else' under matching `if'.  Otherwise else is
-lined up with first character on line holding matching if."
+  "If non-nil, align `else' under matching `if'.  Otherwise else
+is lined up with first character on line holding matching if."
+  :group 'vlog-indent
+  :type  'boolean)
+
+(defcustom vlog-indent-backtrace-block-beg t
+  "If t, back trace block begin in the indentation."
   :group 'vlog-indent
   :type  'boolean)
 
@@ -551,41 +556,58 @@ e.g.) of previous line."
                       (list (cons 'else "") icol)
                     (vlog-indent-goto-block-beg lim (match-string-no-properties 0))
                     (list (cons nil "}") icol))
-                (let ((word   nil)
-                      (column nil)
-                      (lim (line-beginning-position))
-                      (tag    nil))
+                (let ((bt (point))
+                      word column tag)
+                  ;; check the last word, we are looking at eol
                   (save-excursion
-                    (if (vlog-re-search-backward    ;; consider `begin/fork:tag' cases
-                         "^\\(\\s-*\\)\\(\\S-+\\)\\s-*\\(:\\)\\s-*\\(\\S-+\\)*" lim t)
-                        (progn
-                          (setq word   (match-string-no-properties 2))
-                          (setq column (match-end 3))
-                          (setq tag    (match-string-no-properties 4)))
+                    (if (vlog-re-search-backward
+                         "\\<\\(\\S-+\\)\\s-*\\(:\\)\\s-*\\(\\S-+\\)*"
+                         (line-beginning-position) t)
+                        ;; consider `begin/fork:tag' cases
+                        (setq bt     (match-beginning 1)
+                              word   (match-string-no-properties 1)
+                              column (match-end 2)
+                              tag    (match-string-no-properties 3))
                       (re-search-backward
                        "\\<\\(\\sw+\\)" (line-beginning-position) t)
-                      (setq word (match-string-no-properties 1))))
-                  (unless (stringp word) (setq word ""))
+                      (setq bt   (match-beginning 1)
+                            word (match-string-no-properties 1))))
+                  ;; keep it a string
+                  (or (stringp word) (setq word ""))
+                  ;; make return results
                   (if column
                       (if tag
                           (if (or (string= word "begin")
                                   (string= word "fork"))
                               ;; `begin/fork:tag', [CLOSED]
-                              (list (cons 'block-beg (concat "{" word)) icol)
+                              (list (cons 'block-beg (concat "{" word))
+                                    (vlog-indent-backtrace-icol bt lim icol))
                             ;; `dummy:tag', maybe branch, [OPEN]
                             (list (cons 'branch tag) icol))
                         ;; `dummy:', maybe branch, [OPEN]
                         (list (cons 'branch (concat word ":")) icol))
-                    ;; no identifier
+                    ;; no column
                     (cond
                      ((or (string-match vlog-indent-special-beg-daily-words-re word)
                           (string-match vlog-indent-special-beg-scarce-words-re word))
-                      (list (cons 'block-beg "{") icol))
+                      (list (cons 'block-beg "{") (vlog-indent-backtrace-icol bt lim icol)))
                      ((or (string-match vlog-indent-special-end-daily-words-re word)
                           (string-match vlog-indent-special-end-scarce-words-re word))
                       (list (cons nil "}") icol))
                      (t (list (cons 'normal word) icol)))))))))
         (list (cons nil "^") 0)))))
+
+(defun vlog-indent-backtrace-icol (pt lim &optional icol)
+  "Backtrace for indent column from point PT, with limit LIM and
+default indent column ICOL."
+  (if (and vlog-indent-backtrace-block-beg
+           (save-excursion
+             (goto-char pt)
+             (vlog-skip-blank-and-useless-backward)
+             (= (preceding-char) ?\))))
+      (progn (condition-case nil (backward-list) (error nil))
+             (vlog-indent-level-at-pos))
+    (or icol (vlog-indent-level-at-pos))))
 
 (defun vlog-indent-check-for-else (limit)
   "Check matching `if' for current `else'.  Return indentation of match `if'.
@@ -620,8 +642,10 @@ If `vlog-indent-align-else-to-if' is non-nil, align `else' to `if'."
      (t
       (if (looking-at vlog-indent-block-end-words-re)
           (if (vlog-indent-goto-block-beg limit (match-string-no-properties 0))
-              (setq icol (vlog-indent-level-at-pos)
+              ;;(setq icol (vlog-indent-level-at-pos)
+              (setq icol (vlog-indent-backtrace-icol (point) limit)
                     type 'block-end)
+            ;;
             (setq type 'none))
             ;;(throw 'done nil))
         (catch 'done
