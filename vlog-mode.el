@@ -77,6 +77,16 @@ You can add your own keymaps using this hook."
   :type  'boolean
   :group 'vlog-mode)
 
+(defcustom vlog-mode-auto-end-task t
+  "If t, insert `endtask' after `task' automatically."
+  :type  'boolean
+  :group 'vlog-mode)
+
+(defcustom vlog-mode-auto-end-function t
+  "If t, insert `endfunction' after `function' automatically."
+  :type  'boolean
+  :group 'vlog-mode)
+
 (defcustom vlog-mode-double-comma-prefix nil
   "Prefix string to add after you typed double comma."
   :type  'string
@@ -984,6 +994,28 @@ if `vlog-mode-auto-end-module' (`vlog-mode-auto-end-block') is t."
       (when (match-end 1)
         (insert (match-string 1)))
       (insert "endmodule"))
+    (insert " "))
+   ;; auto endtask
+   ((and vlog-mode-auto-end-task
+         (looking-back "\\<task")
+         (eq last-command 'vlog-mode-electric-k))
+    (let ((icol (vlog-indent-level-at-pos)))
+      (save-excursion
+        (end-of-line)
+        (newline)
+        (vlog-lib-indent-to-column icol)
+        (insert "endtask")))
+    (insert " "))
+   ;; auto endfunction
+   ((and vlog-mode-auto-end-function
+         (looking-back "\\<function")
+         (eq last-command 'vlog-mode-electric-n))
+    (let ((icol (vlog-indent-level-at-pos)))
+      (save-excursion
+        (end-of-line)
+        (newline)
+        (vlog-lib-indent-to-column icol)
+        (insert "endfunction")))
     (insert " "))
    (t (insert " "))))
 
